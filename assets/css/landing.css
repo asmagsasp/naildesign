@@ -1035,3 +1035,360 @@ textarea.form-control {
         font-size: 1.8rem;
     }
 }
+
+/* ==========================================================================
+   Explosive Luxury Promo Banner Modal (R$ 699,00 em até 12x)
+   Ultra-Compacto & 100% Visível em qualquer tela (viewport >= 480px de altura)
+   ========================================================================== */
+.promo-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(4, 4, 8, 0.88);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    z-index: 99999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.6rem;
+    overflow-y: auto;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.35s ease, visibility 0.35s ease;
+}
+
+.promo-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.promo-modal-card {
+    position: relative;
+    max-width: 440px;
+    width: 100%;
+    max-height: 96vh;
+    overflow-y: auto;
+    box-sizing: border-box;
+    background: #0f0f16;
+    background: radial-gradient(circle at 50% -10%, #29241b 0%, #0d0d13 100%);
+    border: 2px solid rgba(212, 175, 55, 0.7);
+    border-radius: 20px;
+    padding: 1.25rem 1.4rem 1rem;
+    box-shadow: 0 0 50px rgba(212, 175, 55, 0.35), 0 25px 80px rgba(0, 0, 0, 0.95);
+    text-align: center;
+    transform: scale(0.2) rotate(-6deg);
+    opacity: 0;
+    filter: blur(12px);
+    transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease, filter 0.4s ease;
+    margin: auto;
+}
+
+/* Custom scrollbar for card */
+.promo-modal-card::-webkit-scrollbar {
+    width: 4px;
+}
+.promo-modal-card::-webkit-scrollbar-thumb {
+    background: rgba(212, 175, 55, 0.4);
+    border-radius: 4px;
+}
+
+.promo-modal-overlay.active .promo-modal-card {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+    filter: blur(0px);
+    animation: promoCardPop 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes promoCardPop {
+    0% {
+        transform: scale(0.18) translateY(40px) rotate(-8deg);
+        opacity: 0;
+        filter: blur(15px);
+    }
+    70% {
+        transform: scale(1.05) translateY(-6px) rotate(1.2deg);
+        opacity: 1;
+        filter: blur(0px);
+    }
+    100% {
+        transform: scale(1) translateY(0) rotate(0deg);
+        opacity: 1;
+    }
+}
+
+/* Modal Inner Aesthetics */
+.promo-card-glow {
+    position: absolute;
+    top: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 240px;
+    height: 160px;
+    background: radial-gradient(circle, rgba(212, 175, 55, 0.25) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.promo-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1.5px solid rgba(212, 175, 55, 0.6);
+    color: #ffffff;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    cursor: pointer;
+    transition: var(--transition);
+    z-index: 20;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    line-height: 1;
+}
+
+.promo-close-btn:hover {
+    background: #e74c3c;
+    border-color: #e74c3c;
+    color: #fff;
+    transform: rotate(90deg) scale(1.12);
+}
+
+.promo-badge-ribbon {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(212, 175, 55, 0.15);
+    border: 1px solid rgba(212, 175, 55, 0.5);
+    color: #ffd768;
+    padding: 0.22rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    margin-bottom: 0.45rem;
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+    animation: ribbonPulse 2s infinite ease-in-out;
+}
+
+@keyframes ribbonPulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 12px rgba(212, 175, 55, 0.2);
+    }
+    50% {
+        transform: scale(1.04);
+        box-shadow: 0 0 25px rgba(212, 175, 55, 0.45);
+    }
+}
+
+.promo-modal-title {
+    font-family: var(--font-heading);
+    font-size: 1.35rem;
+    line-height: 1.22;
+    color: #ffffff;
+    margin-bottom: 0.35rem;
+    font-weight: 700;
+}
+
+.promo-modal-title .gold-text {
+    background: var(--gold-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+}
+
+.promo-modal-desc {
+    color: #a6a6b8;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    margin-bottom: 0.75rem;
+    max-width: 390px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Price Display Box */
+.promo-price-box {
+    background: rgba(22, 22, 32, 0.8);
+    border: 1.5px solid rgba(212, 175, 55, 0.45);
+    border-radius: 14px;
+    padding: 0.45rem 1rem;
+    margin-bottom: 0.75rem;
+    box-shadow: inset 0 0 20px rgba(212, 175, 55, 0.08);
+}
+
+.promo-old-price {
+    font-size: 0.76rem;
+    color: #7a7a8f;
+    text-decoration: line-through;
+    margin-bottom: 0;
+}
+
+.promo-main-price {
+    font-size: 2.15rem;
+    font-weight: 800;
+    font-family: var(--font-heading);
+    background: var(--gold-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1.05;
+    margin-bottom: 0.1rem;
+}
+
+.promo-installments {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: rgba(0, 184, 148, 0.15);
+    border: 1px solid rgba(0, 184, 148, 0.4);
+    color: #55efc4;
+    padding: 0.18rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 700;
+}
+
+/* Feature Checkmarks */
+.promo-features-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    text-align: left;
+    margin-bottom: 0.85rem;
+    padding: 0 0.3rem;
+}
+
+.promo-feat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-size: 0.8rem;
+    color: #e4e4ee;
+    line-height: 1.3;
+}
+
+.promo-feat-item i {
+    color: #00b894;
+    font-size: 0.88rem;
+    flex-shrink: 0;
+}
+
+/* CTA Action */
+.btn-promo-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    width: 100%;
+    padding: 0.75rem 1.2rem;
+    background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+    color: #ffffff;
+    font-size: 0.95rem;
+    font-weight: 800;
+    border-radius: 999px;
+    border: none;
+    box-shadow: 0 8px 25px rgba(37, 211, 102, 0.4);
+    transition: var(--transition);
+    cursor: pointer;
+    text-decoration: none;
+    letter-spacing: 0.4px;
+}
+
+.btn-promo-action:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 12px 30px rgba(37, 211, 102, 0.6);
+    color: #ffffff;
+}
+
+.promo-footer-link {
+    margin-top: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: #8b8ba0;
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.promo-footer-link:hover {
+    color: #ffffff;
+    text-decoration: underline;
+}
+
+/* Floating Promo Trigger Pill (in bottom left) */
+.floating-promo-pill {
+    position: fixed;
+    bottom: 30px;
+    left: 30px;
+    background: rgba(18, 18, 25, 0.95);
+    backdrop-filter: blur(12px);
+    border: 1.5px solid rgba(212, 175, 55, 0.6);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7), 0 0 20px rgba(212, 175, 55, 0.25);
+    padding: 0.65rem 1.1rem;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    z-index: 9998;
+    cursor: pointer;
+    transition: var(--transition);
+    animation: pillFloat 3s infinite alternate ease-in-out;
+}
+
+.floating-promo-pill:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 12px 35px rgba(212, 175, 55, 0.45);
+}
+
+.floating-promo-pill i {
+    color: #ffd768;
+    font-size: 1.1rem;
+}
+
+.floating-promo-pill span {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.floating-promo-pill .price-tag {
+    color: var(--gold-glow);
+    font-weight: 800;
+}
+
+@keyframes pillFloat {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-8px); }
+}
+
+@media (max-width: 600px) {
+    .promo-modal-card {
+        padding: 1.2rem 1rem 0.9rem;
+        max-width: 95%;
+    }
+    .promo-modal-title {
+        font-size: 1.25rem;
+    }
+    .promo-main-price {
+        font-size: 1.95rem;
+    }
+    .btn-promo-action {
+        font-size: 0.88rem;
+        padding: 0.7rem 0.9rem;
+    }
+    .floating-promo-pill {
+        bottom: 95px;
+        left: 20px;
+        padding: 0.55rem 0.9rem;
+    }
+}
+
+

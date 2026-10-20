@@ -112,4 +112,50 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    // 5. Promo Banner Modal Explosivo (R$ 699,00 em até 12x)
+    const promoModal = document.getElementById('promoModal');
+    const promoCloseBtn = document.getElementById('promoCloseBtn');
+    const promoDismissLink = document.getElementById('promoDismissLink');
+    const promoPillTrigger = document.getElementById('promoPillTrigger');
+
+    function openPromo() {
+        if (promoModal) {
+            promoModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closePromo() {
+        if (promoModal) {
+            promoModal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+
+    // Explode na tela logo após o carregamento da página
+    setTimeout(() => {
+        openPromo();
+    }, 600);
+
+    if (promoCloseBtn) promoCloseBtn.addEventListener('click', closePromo);
+    if (promoDismissLink) promoDismissLink.addEventListener('click', closePromo);
+    if (promoPillTrigger) promoPillTrigger.addEventListener('click', openPromo);
+
+    // Fechar ao clicar fora do card
+    if (promoModal) {
+        promoModal.addEventListener('click', (e) => {
+            if (e.target === promoModal) {
+                closePromo();
+            }
+        });
+    }
+
+    // Fechar com a tecla ESC
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && promoModal && promoModal.classList.contains('active')) {
+            closePromo();
+        }
+    });
 });
+
