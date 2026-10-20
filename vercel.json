@@ -7,11 +7,23 @@
       "destination": "/admin.html"
     },
     {
+      "source": "/admin/(.*)",
+      "destination": "/admin.html"
+    },
+    {
       "source": "/s/:salon/admin",
       "destination": "/admin.html"
     },
     {
+      "source": "/s/:salon/admin/(.*)",
+      "destination": "/admin.html"
+    },
+    {
       "source": "/s/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/((?!assets/|favicon.ico|admin).*)",
       "destination": "/index.html"
     }
   ]
