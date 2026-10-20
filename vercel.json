@@ -1,26 +1,17 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "cleanUrls": true,
-  "outputDirectory": ".",
   "rewrites": [
     {
-      "source": "/admin",
+      "source": "/admin(.*)",
       "destination": "/admin.html"
     },
     {
-      "source": "/s/:salon/admin",
+      "source": "/s/(.*)/admin(.*)",
       "destination": "/admin.html"
     },
     {
-      "source": "/s/:salon/admin/",
-      "destination": "/admin.html"
-    },
-    {
-      "source": "/s/:salon",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/s/:salon/",
+      "source": "/s/(.*)",
       "destination": "/index.html"
     }
   ]
