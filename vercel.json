@@ -3,15 +3,27 @@
   "cleanUrls": true,
   "rewrites": [
     {
-      "source": "/admin(.*)",
+      "source": "/admin",
       "destination": "/admin.html"
     },
     {
-      "source": "/s/(.*)/admin(.*)",
+      "source": "/s/:salon/admin",
       "destination": "/admin.html"
     },
     {
-      "source": "/s/(.*)",
+      "source": "/s/:salon/admin/",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/s/:salon",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/s/:salon/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/s/:path*",
       "destination": "/index.html"
     }
   ]
