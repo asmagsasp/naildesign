@@ -1,13 +1,12 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "cleanUrls": true,
   "rewrites": [
     {
       "source": "/admin",
       "destination": "/admin.html"
     },
     {
-      "source": "/admin/(.*)",
+      "source": "/admin/:path*",
       "destination": "/admin.html"
     },
     {
@@ -15,15 +14,19 @@
       "destination": "/admin.html"
     },
     {
-      "source": "/s/:salon/admin/(.*)",
+      "source": "/s/:salon/admin/:path*",
       "destination": "/admin.html"
     },
     {
-      "source": "/s/:path*",
+      "source": "/s/:salon",
       "destination": "/index.html"
     },
     {
-      "source": "/((?!assets/|favicon.ico|admin).*)",
+      "source": "/s/:salon/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/:path*",
       "destination": "/index.html"
     }
   ]
