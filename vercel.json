@@ -19,11 +19,11 @@
     },
     {
       "source": "/s/:salon",
-      "destination": "/index.html"
+      "destination": "/salon.html"
     },
     {
       "source": "/s/:salon/:path*",
-      "destination": "/index.html"
+      "destination": "/salon.html"
     },
     {
       "source": "/:path*",

@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="/">
+    <title>Gio Nails | Arte & Sofisticação</title>
+    <meta name="description"
+        content="Especialista em unhas de luxo: Gel, Fibra de Vidro e Nail Art exclusiva. Realce sua beleza natural.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Cinzel:wght@600;700&family=Cormorant+Garamond:ital,wght@0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Poppins:wght@400;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom Style -->
+    <link rel="stylesheet" href="assets/css/style.css">
+
+    <!-- Immediate Salon Pre-configuration -->
+    <script>
+        (function() {
+            try {
+                var p = new URLSearchParams(window.location.search);
+                var s = window.location.pathname.split('/').filter(Boolean);
+                var slug = p.get('salon');
+                if (!slug && s[0] === 's' && s[1]) slug = s[1];
+                if (slug) {
+                    slug = slug.toLowerCase();
+                    if (slug === 'bellanais') slug = 'bellanails';
+                }
+                window.__INITIAL_SALON_SLUG__ = slug || 'gionails';
+
+                // Check if we have cached salon branding in localStorage
+                var cached = localStorage.getItem('salon_cache_' + (slug || 'gionails'));
+                if (cached) {
+                    var data = JSON.parse(cached);
+                    var sln = data.salon || data;
+                    if (sln.primary_color) {
+                        document.documentElement.style.setProperty('--primary', sln.primary_color);
+                    }
+                    if (sln.name) {
+                        document.title = sln.name + ' | Arte & Sofisticação';
+                    }
+                } else if (slug && slug.indexOf('bella') !== -1) {
+                    document.documentElement.style.setProperty('--primary', '#00b894');
+                    document.title = 'Studio Bella Nails | Arte & Sofisticação';
+                }
+            } catch(e) {}
+        })();
+    </script>
+</head>
+
+<body>
+
+    <!-- Luxury Salon Preloader -->
+    <div id="salonPreloader" class="salon-preloader">
+        <div class="preloader-inner">
+            <div class="preloader-gem">
+                <i class="fas fa-gem"></i>
+            </div>
+            <h2 id="preloaderSalonName" class="preloader-title">Studio Bella Nails</h2>
+            <div class="preloader-progress">
+                <div class="preloader-bar"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        (function() {
+            var el = document.getElementById('preloaderSalonName');
+            if (el && window.__INITIAL_SALON_SLUG__) {
+                if (window.__INITIAL_SALON_SLUG__.indexOf('bella') !== -1) {
+                    el.textContent = 'Studio Bella Nails';
+                } else if (window.__INITIAL_SALON_SLUG__ === 'gionails') {
+                    el.textContent = 'Gio Nails';
+                } else {
+                    el.textContent = 'Carregando Studio...';
+                }
+            }
+        })();
+    </script>
+
+    <!-- Header Navigation -->
+    <header id="navbar">
+        <div class="container">
+            <div class="logo">
+                <a href="#" id="salonLogo">Gio<span>Nails</span></a>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#home">Início</a></li>
+                    <li><a href="#about">Sobre</a></li>
+                    <li><a href="#services">Serviços</a></li>
+                    <li><a href="#portfolio">Portfólio</a></li>
+                    <li><a href="#contact">Contato</a></li>
+                </ul>
+            </nav>
+            <div class="nav-toggle" id="navToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero" style="background-image: url('assets/images/f521b753-a874-42fb-b737-9d87aca2990c.jpg');">
+        <div class="overlay"></div>
+        <div class="container hero-content">
+            <h2 class="subtitle" id="heroSubtitle">Bem-vinda ao seu momento</h2>
+            <h1 id="heroTitle">Arte & Sofisticação <br><span>em Suas Mãos</span></h1>
+            <p id="heroDescription">Especialista em técnicas avançadas de alongamento e Nail Art exclusiva, transformando unhas em
+                verdadeiras obras de arte.</p>
+            <div class="hero-btns">
+                <a href="javascript:void(0)" class="btn btn-primary open-booking">Agendar Horário</a>
+                <a href="#portfolio" class="btn btn-secondary">Ver Portfólio</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <div class="container grid">
+            <div class="about-image">
+                <img id="aboutImage" src="assets/images/afc7434f-f6fe-490a-8f70-1a0306cf32e9.jpg" alt="Nail Designer">
+            </div>
+            <div class="about-text">
+                <span class="section-tag" id="bioTag">Minha História</span>
+                <h2 id="bioTitle">Paixão pelo que faço</h2>
+                <p id="bioText1">Com anos de experiência no mercado de beleza, meu objetivo é oferecer não apenas um serviço de
+                    manicure, mas uma experiência de autocuidado e elevação da autoestima.</p>
+                <p id="bioText2">Trabalho com os melhores materiais do mercado para garantir durabilidade, saúde e a beleza que suas
+                    unhas merecem.</p>
+                <div class="stats">
+                    <div class="stat-item">
+                        <span class="number" id="stat1Num">500+</span>
+                        <p id="stat1Text">Clientes Satisfeitas</p>
+                    </div>
+                    <div class="stat-item">
+                        <span class="number" id="stat2Num">5+</span>
+                        <p id="stat2Text">Anos de Experiência</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="services">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">O que ofereço</span>
+                <h2>Nossos Serviços</h2>
+            </div>
+            <div class="services-grid" id="servicesGrid">
+                <div class="service-card">
+                    <i class="fas fa-gem"></i>
+                    <h3>Fibra de Vidro</h3>
+                    <p>Alongamento ultra realista com máxima durabilidade e resistência.</p>
+                </div>
+                <div class="service-card active">
+                    <i class="fas fa-spa"></i>
+                    <h3>Gel Moldado</h3>
+                    <p>Técnica precisa que valoriza o formato natural das unhas com elegância.</p>
+                </div>
+                <div class="service-card">
+                    <i class="fas fa-paint-brush"></i>
+                    <h3>Nail Art Luxury</h3>
+                    <p>Designs exclusivos, pedrarias, francesas e acabamentos únicos para ocasiões especiais.</p>
+                </div>
+                <div class="service-card">
+                    <i class="fas fa-heart"></i>
+                    <h3>Spa dos Pés</h3>
+                    <p>Tratamento completo para revitalização, esfoliação e cuidado profundo.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Portfolio Section -->
+    <section id="portfolio" class="portfolio">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Galeria</span>
+                <h2>Últimos Trabalhos</h2>
+            </div>
+            <div class="portfolio-grid" id="galleryGrid">
+                <!-- Fotos dinâmicas carregadas pelo main.js -->
+                <div class="portfolio-item">
+                    <img src="assets/images/1e21f989-b51e-4c4c-852d-e35d7cf355d9.jpg" alt="Trabalho 1">
+                </div>
+                <div class="portfolio-item">
+                    <img src="assets/images/23fdaed9-340f-465a-8ac6-9ca7496e29a2.jpg" alt="Trabalho 2">
+                </div>
+                <div class="portfolio-item">
+                    <img src="assets/images/93e46d34-e858-4c4e-88a7-ebb8744f803e.jpg" alt="Trabalho 3">
+                </div>
+                <div class="portfolio-item">
+                    <img src="assets/images/WhatsApp Image 2026-03-12 at 19.32.42.jpeg" alt="Trabalho 4">
+                </div>
+                <div class="portfolio-item">
+                    <img src="assets/images/b7c6d662-d34d-4724-a673-5b571d7343f0.jpg" alt="Trabalho 5">
+                </div>
+                <div class="portfolio-item">
+                    <img src="assets/images/e5f952e3-43fb-4d1e-a698-6eebbc0035cb.jpg" alt="Trabalho 6">
+                </div>
+                <div class="portfolio-item">
+                    <img src="assets/images/efa43829-3591-4dd2-bf77-82079aee6f01.jpg" alt="Trabalho 7">
+                </div>
+                <div class="portfolio-item">
+                    <img src="assets/images/f521b753-a874-42fb-b737-9d87aca2990c.jpg" alt="Trabalho 8">
+                </div>
+                <div class="portfolio-item">
+                    <img src="assets/images/f7edafae-399b-4765-945a-c9f4c9a93700.jpg" alt="Trabalho 9">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact">
+        <div class="container grid">
+            <div class="contact-info">
+                <h2>Vamos realçar sua beleza?</h2>
+                <p>Agende seu horário agora e tenha as unhas que você sempre sonhou.</p>
+                <div class="info-list">
+                    <a href="https://wa.me/5519999995149" target="_blank" class="info-item" id="contactWhatsappLink">
+                        <i class="fab fa-whatsapp"></i>
+                        <div>
+                            <h4>WhatsApp</h4>
+                            <p><span class="blurred-text" id="contactWhatsappText" title="Informação oculta">(19) 99999-5149</span></p>
+                        </div>
+                    </a>
+                    <a href="https://www.instagram.com/gionails80" target="_blank" class="info-item" id="contactInstagramLink">
+                        <i class="fab fa-instagram"></i>
+                        <div>
+                            <h4>Instagram</h4>
+                            <p><span class="blurred-text" id="contactInstagramText" title="Informação oculta">@gionails80</span></p>
+                        </div>
+                    </a>
+                </div>
+                <a href="javascript:void(0)" class="btn btn-primary full-width open-booking">Agendar Agora <i
+                        class="fab fa-whatsapp"></i></a>
+            </div>
+            <div class="contact-map">
+                <!-- Location Placeholder -->
+                <a id="contactMapsLink" href="https://www.google.com/maps/search/?api=1&query=Rua+Steffano+Scarazatto,+143+-+Jardim+da+Colônia+-+Jundiaí+-+SP"
+                    target="_blank" class="map-placeholder">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <p id="contactAddress">Rua Steffano Scarazatto, 143 <br> Jardim da Colônia - Jundiaí - SP</p>
+                    <span style="font-size: 0.8rem; color: var(--primary); margin-top: 10px;">Ver no Google Maps</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Booking Modal -->
+    <div id="bookingModal" class="booking-modal">
+        <div class="booking-modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="booking-modal-header">
+                <h2>Agende seu Horário</h2>
+                <p>Preencha os dados abaixo para solicitar seu agendamento.</p>
+            </div>
+            <form id="bookingForm">
+                <div class="form-group">
+                    <label for="name">Seu Nome</label>
+                    <input type="text" id="name" placeholder="Digite seu nome completo" required>
+                </div>
+                <div class="form-group">
+                    <label for="whatsapp">Seu WhatsApp</label>
+                    <input type="tel" id="whatsapp" placeholder="(DDD) 99999-9999" required>
+                </div>
+                <div class="form-group">
+                    <label for="service">Serviço Desejado</label>
+                    <select id="service" required>
+                        <option value="" disabled selected>Selecione um serviço</option>
+                        <option value="Fibra de Vidro">Fibra de Vidro</option>
+                        <option value="Banho de Gel">Banho de Gel</option>
+                        <option value="Nail Art Luxury">Nail Art Luxury</option>
+                        <option value="Spa dos Pés">Spa dos Pés</option>
+                        <option value="Manutenção">Manutenção</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="date">Data</label>
+                        <input type="date" id="date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="time">Horário</label>
+                        <select id="time" required>
+                            <option value="" disabled selected>Escolha</option>
+                            <option value="09:00">09:00</option>
+                            <option value="10:30">10:30</option>
+                            <option value="14:00">14:00</option>
+                            <option value="15:30">15:30</option>
+                            <option value="17:00">17:00</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary full-width">Solicitar Agendamento via WhatsApp</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 Nail Design. Desenvolvido com carinho.</p>
+        </div>
+    </footer>
+
+    <!-- Back to Top -->
+    <a href="#" class="back-to-top" id="backToTop"><i class="fas fa-chevron-up"></i></a>
+
+    <!-- Custom JS (Modules) -->
+    <script type="module" src="assets/js/main.js"></script>
+</body>
+
+</html>

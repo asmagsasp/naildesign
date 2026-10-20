@@ -1,11 +1,12 @@
 {
   "cleanUrls": false,
   "rewrites": [
+    { "source": "/", "destination": "/index.html" },
     { "source": "/admin", "destination": "/admin.html" },
     { "source": "/admin/(.*)", "destination": "/admin.html" },
     { "source": "/s/:salon/admin", "destination": "/admin.html" },
     { "source": "/s/:salon/admin/(.*)", "destination": "/admin.html" },
-    { "source": "/s/:salon", "destination": "/index.html" },
-    { "source": "/s/:salon/(.*)", "destination": "/index.html" }
+    { "source": "/s/:salon", "destination": "/salon.html" },
+    { "source": "/s/:salon/(.*)", "destination": "/salon.html" }
   ]
 }
