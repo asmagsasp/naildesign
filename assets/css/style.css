@@ -669,3 +669,105 @@ footer {
         grid-template-columns: 1fr;
     }
 }
+
+/* ==========================================================================
+   Luxury Salon Preloader & Seamless Multi-Tenant Transition
+   ========================================================================== */
+.salon-preloader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #111116;
+    background: radial-gradient(circle at center, #1c1c24 0%, #0c0c0f 100%);
+    z-index: 9999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.4s ease;
+}
+
+.salon-preloader.fade-out {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.preloader-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 2.5rem;
+    max-width: 420px;
+}
+
+.preloader-gem {
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1.5px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 0 35px rgba(0, 0, 0, 0.6), 0 0 18px var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    animation: preloaderPulse 1.8s ease-in-out infinite;
+}
+
+.preloader-gem i {
+    font-size: 2.2rem;
+    color: var(--primary);
+    filter: drop-shadow(0 0 10px var(--primary));
+    transition: color 0.3s ease;
+}
+
+.preloader-title {
+    font-family: var(--font-heading);
+    font-size: 1.6rem;
+    color: #ffffff;
+    letter-spacing: 1px;
+    margin-bottom: 1.4rem;
+    font-weight: 600;
+}
+
+.preloader-progress {
+    width: 160px;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    overflow: hidden;
+    position: relative;
+}
+
+.preloader-bar {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, var(--primary), transparent);
+    background-size: 200% 100%;
+    animation: preloaderShimmer 1.4s infinite linear;
+}
+
+@keyframes preloaderPulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 25px rgba(0, 0, 0, 0.6), 0 0 12px var(--primary);
+    }
+    50% {
+        transform: scale(1.08);
+        box-shadow: 0 0 40px rgba(0, 0, 0, 0.7), 0 0 25px var(--primary);
+    }
+}
+
+@keyframes preloaderShimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}

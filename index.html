@@ -21,9 +21,69 @@
 
     <!-- Custom Style -->
     <link rel="stylesheet" href="assets/css/style.css">
+
+    <!-- Immediate Salon Pre-configuration -->
+    <script>
+        (function() {
+            try {
+                var p = new URLSearchParams(window.location.search);
+                var s = window.location.pathname.split('/').filter(Boolean);
+                var slug = p.get('salon');
+                if (!slug && s[0] === 's' && s[1]) slug = s[1];
+                if (slug) {
+                    slug = slug.toLowerCase();
+                    if (slug === 'bellanais') slug = 'bellanails';
+                }
+                window.__INITIAL_SALON_SLUG__ = slug || 'gionails';
+
+                // Check if we have cached salon branding in localStorage
+                var cached = localStorage.getItem('salon_cache_' + (slug || 'gionails'));
+                if (cached) {
+                    var data = JSON.parse(cached);
+                    var sln = data.salon || data;
+                    if (sln.primary_color) {
+                        document.documentElement.style.setProperty('--primary', sln.primary_color);
+                    }
+                    if (sln.name) {
+                        document.title = sln.name + ' | Arte & Sofisticação';
+                    }
+                } else if (slug && slug.indexOf('bella') !== -1) {
+                    document.documentElement.style.setProperty('--primary', '#00b894');
+                    document.title = 'Studio Bella Nails | Arte & Sofisticação';
+                }
+            } catch(e) {}
+        })();
+    </script>
 </head>
 
 <body>
+
+    <!-- Luxury Salon Preloader -->
+    <div id="salonPreloader" class="salon-preloader">
+        <div class="preloader-inner">
+            <div class="preloader-gem">
+                <i class="fas fa-gem"></i>
+            </div>
+            <h2 id="preloaderSalonName" class="preloader-title">Studio Bella Nails</h2>
+            <div class="preloader-progress">
+                <div class="preloader-bar"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        (function() {
+            var el = document.getElementById('preloaderSalonName');
+            if (el && window.__INITIAL_SALON_SLUG__) {
+                if (window.__INITIAL_SALON_SLUG__.indexOf('bella') !== -1) {
+                    el.textContent = 'Studio Bella Nails';
+                } else if (window.__INITIAL_SALON_SLUG__ === 'gionails') {
+                    el.textContent = 'Gio Nails';
+                } else {
+                    el.textContent = 'Carregando Studio...';
+                }
+            }
+        })();
+    </script>
 
     <!-- Header Navigation -->
     <header id="navbar">

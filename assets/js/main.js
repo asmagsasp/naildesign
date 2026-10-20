@@ -14,6 +14,16 @@ export function revealOnScroll() {
     });
 }
 
+export function hidePreloader() {
+    const preloader = document.getElementById('salonPreloader');
+    if (preloader && !preloader.classList.contains('fade-out')) {
+        preloader.classList.add('fade-out');
+        setTimeout(() => {
+            if (preloader.parentNode) preloader.parentNode.removeChild(preloader);
+        }, 500);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     // 1. Identificar qual salão carregar pela URL (ex: ?salon=gionails ou /s/gionails)
     const urlParams = new URLSearchParams(window.location.search);
@@ -23,17 +33,77 @@ document.addEventListener('DOMContentLoaded', async () => {
         slug = pathSegments[1];
     }
     if (!slug) slug = 'gionails'; // Salão padrão
+    slug = slug.toLowerCase();
+    if (slug === 'bellanais') slug = 'bellanails';
 
+    // Timeout de segurança absoluto: nunca deixe o visitante preso no preloader
+    const safetyTimer = setTimeout(hidePreloader, 3500);
+
+    // 1.1 Atualizar texto do preloader de imediato
+    const pName = document.getElementById('preloaderSalonName');
+    if (pName) {
+        if (slug.includes('bella')) pName.innerText = 'Studio Bella Nails';
+        else if (slug === 'gionails') pName.innerText = 'Gio Nails';
+    }
+
+    // 1.2 Cache Instantâneo (Stale-While-Revalidate)
+    const cacheKey = 'salon_cache_' + slug;
+    try {
+        const raw = localStorage.getItem(cacheKey);
+        if (raw) {
+            const cached = JSON.parse(raw);
+            if (cached && cached.salon) {
+                currentSalon = cached.salon;
+                renderSalonBasic(cached.salon);
+                if (cached.services && cached.services.length) renderServices(cached.services);
+                if (cached.photos && cached.photos.length) renderGallery(cached.photos);
+                revealOnScroll();
+                // Exibe o conteúdo imediatamente se estiver no cache
+                setTimeout(hidePreloader, 60);
+            }
+        }
+    } catch (e) {
+        console.warn("Erro ao ler cache do salão:", e);
+    }
+
+    // 1.3 Buscar dados frescos do banco
     try {
         currentSalon = await getSalonBySlug(slug);
         if (!currentSalon && slug !== 'gionails') {
             currentSalon = await getSalonBySlug('gionails');
         }
         if (currentSalon) {
-            await renderSalonData(currentSalon);
+            renderSalonBasic(currentSalon);
+
+            // Carregar serviços e galeria em paralelo
+            const [services, photos] = await Promise.all([
+                getServicesBySalon(currentSalon.id).catch(e => { console.error("Erro serviços:", e); return []; }),
+                getGalleryBySalon(currentSalon.id).catch(e => { console.error("Erro galeria:", e); return []; })
+            ]);
+
+            if (services && services.length) renderServices(services);
+            if (photos && photos.length) renderGallery(photos);
+            revealOnScroll();
+
+            // Salvar no cache para carregamento imediato (0ms)
+            try {
+                const cachePayload = JSON.stringify({
+                    salon: currentSalon,
+                    services: services || [],
+                    photos: photos || [],
+                    updatedAt: Date.now()
+                });
+                localStorage.setItem(cacheKey, cachePayload);
+                if (slug === 'bellanails') {
+                    localStorage.setItem('salon_cache_bellanais', cachePayload);
+                }
+            } catch (e) {}
         }
     } catch (err) {
         console.error("Erro ao carregar dados do salão:", err);
+    } finally {
+        clearTimeout(safetyTimer);
+        hidePreloader();
     }
 
     // 2. Comportamentos de UI (Navbar, Scroll, Menu)
@@ -228,7 +298,8 @@ function formatPrice(val) {
     return `R$ ${isNaN(num) ? '0' : num.toLocaleString('pt-BR')},00`;
 }
 
-async function renderSalonData(salon) {
+export function renderSalonBasic(salon) {
+    if (!salon) return;
     try {
         // 1. Título e Cores
         document.title = `${salon.name} | Arte & Sofisticação`;
@@ -350,63 +421,82 @@ async function renderSalonData(salon) {
             const mapLink = document.getElementById('contactMapsLink');
             if (mapLink) mapLink.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(salon.maps_query)}`;
         }
+    } catch (e) {
+        console.error("Erro ao renderizar dados básicos do salão:", e);
+    }
+}
 
-        // 6. Carregar Serviços e Galeria em Paralelo para Velocidade Máxima
+export function renderServices(services) {
+    if (!services || services.length === 0) return;
+    try {
+        const grid = document.getElementById('servicesGrid');
+        const select = document.getElementById('service');
+        if (grid) {
+            grid.innerHTML = '';
+            services.forEach((s, idx) => {
+                const card = document.createElement('div');
+                card.className = `service-card ${idx === 1 ? 'active' : ''} visible`;
+                const priceFormatted = s.price ? formatPrice(s.price) : '';
+                card.innerHTML = `
+                    <i class="${s.icon || 'fas fa-gem'}"></i>
+                    <h3>${escapeHtml(s.name)}</h3>
+                    <p>${escapeHtml(s.description || '')}</p>
+                    ${priceFormatted ? `<span class="service-price" style="display:inline-block; margin-top:0.8rem; font-weight:700; color:var(--primary); font-size:1.1rem;">${escapeHtml(priceFormatted)}</span>` : ''}
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        if (select) {
+            select.innerHTML = '<option value="" disabled selected>Selecione um serviço</option>';
+            services.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.name;
+                const priceFormatted = s.price ? formatPrice(s.price) : '';
+                opt.textContent = `${s.name}${priceFormatted ? ` (${priceFormatted})` : ''}`;
+                select.appendChild(opt);
+            });
+        }
+    } catch (e) {
+        console.error("Erro ao renderizar serviços:", e);
+    }
+}
+
+export function renderGallery(photos) {
+    if (!photos || photos.length === 0) return;
+    try {
+        const galleryGrid = document.getElementById('galleryGrid');
+        if (galleryGrid) {
+            galleryGrid.innerHTML = '';
+            photos.forEach(p => {
+                const item = document.createElement('div');
+                item.className = 'portfolio-item visible';
+                item.innerHTML = `<img src="${p.image_url}" alt="${escapeHtml(p.title || 'Trabalho')}" loading="lazy">`;
+                galleryGrid.appendChild(item);
+            });
+        }
+    } catch (e) {
+        console.error("Erro ao renderizar galeria:", e);
+    }
+}
+
+export async function renderSalonData(salon) {
+    if (!salon) return;
+    try {
+        renderSalonBasic(salon);
+
         const [services, photos] = await Promise.all([
             getServicesBySalon(salon.id).catch(e => { console.error("Erro serviços:", e); return []; }),
             getGalleryBySalon(salon.id).catch(e => { console.error("Erro galeria:", e); return []; })
         ]);
 
-        // Renderizar Serviços
-        if (services && services.length > 0) {
-            const grid = document.getElementById('servicesGrid');
-            const select = document.getElementById('service');
-            if (grid) {
-                grid.innerHTML = '';
-                services.forEach((s, idx) => {
-                    const card = document.createElement('div');
-                    card.className = `service-card ${idx === 1 ? 'active' : ''} visible`;
-                    const priceFormatted = s.price ? formatPrice(s.price) : '';
-                    card.innerHTML = `
-                        <i class="${s.icon || 'fas fa-gem'}"></i>
-                        <h3>${escapeHtml(s.name)}</h3>
-                        <p>${escapeHtml(s.description || '')}</p>
-                        ${priceFormatted ? `<span class="service-price" style="display:inline-block; margin-top:0.8rem; font-weight:700; color:var(--primary); font-size:1.1rem;">${escapeHtml(priceFormatted)}</span>` : ''}
-                    `;
-                    grid.appendChild(card);
-                });
-            }
+        if (services && services.length) renderServices(services);
+        if (photos && photos.length) renderGallery(photos);
 
-            if (select) {
-                select.innerHTML = '<option value="" disabled selected>Selecione um serviço</option>';
-                services.forEach(s => {
-                    const opt = document.createElement('option');
-                    opt.value = s.name;
-                    const priceFormatted = s.price ? formatPrice(s.price) : '';
-                    opt.textContent = `${s.name}${priceFormatted ? ` (${priceFormatted})` : ''}`;
-                    select.appendChild(opt);
-                });
-            }
-        }
-
-        // Renderizar Galeria
-        if (photos && photos.length > 0) {
-            const galleryGrid = document.getElementById('galleryGrid');
-            if (galleryGrid) {
-                galleryGrid.innerHTML = '';
-                photos.forEach(p => {
-                    const item = document.createElement('div');
-                    item.className = 'portfolio-item visible';
-                    item.innerHTML = `<img src="${p.image_url}" alt="${escapeHtml(p.title || 'Trabalho')}" loading="lazy">`;
-                    galleryGrid.appendChild(item);
-                });
-            }
-        }
-
-        // Garantir que animações de reveal sejam aplicadas imediatamente aos novos cards
         revealOnScroll();
     } catch (e) {
         console.error("Erro ao renderizar dados do salão:", e);
     }
 }
+
 
