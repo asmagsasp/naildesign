@@ -13,6 +13,8 @@
     --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     --glass: rgba(255, 255, 255, 0.8);
+    --font-main: 'Montserrat', sans-serif;
+    --font-heading: 'Playfair Display', serif;
 }
 
 /* Base Reset */
@@ -27,7 +29,7 @@ html {
 }
 
 body {
-    font-family: 'Montserrat', sans-serif;
+    font-family: var(--font-main);
     color: var(--text);
     background-color: var(--light);
     line-height: 1.6;
@@ -37,7 +39,7 @@ body {
 h1,
 h2,
 h3 {
-    font-family: 'Playfair Display', serif;
+    font-family: var(--font-heading);
 }
 
 ul {
@@ -165,7 +167,7 @@ header .container {
 
 .logo a {
     font-size: 1.8rem;
-    font-family: 'Playfair Display', serif;
+    font-family: var(--font-heading);
     font-weight: 700;
     letter-spacing: 2px;
 }
@@ -287,7 +289,7 @@ nav a:hover {
 .stat-item .number {
     display: block;
     font-size: 2.5rem;
-    font-family: 'Playfair Display', serif;
+    font-family: var(--font-heading);
     color: var(--primary);
     font-weight: 700;
 }

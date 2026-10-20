@@ -8,12 +8,32 @@
 
     <!-- Google Fonts -->
     <link
-        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Cinzel:wght@600;700&family=Cormorant+Garamond:ital,wght@0,600;0,700;1,400&family=Montserrat:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Poppins:wght@400;600;700&display=swap"
         rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <script>
+        // Detecção ultra rápida no HEAD antes do DOM renderizar
+        (function () {
+            try {
+                var params = new URLSearchParams(window.location.search);
+                var parts = window.location.pathname.split('/').filter(Boolean);
+                var s = params.get('salon');
+                if (!s && parts[0] === 's' && parts[1]) s = parts[1];
+                if (s) {
+                    document.documentElement.classList.add('salon-exclusive-mode');
+                }
+            } catch (_) {}
+        })();
+    </script>
+
     <style>
+        /* Modo Salão Exclusivo: Oculta o seletor com prioridade máxima */
+        .salon-exclusive-mode #loginSalonSelectWrapper {
+            display: none !important;
+        }
+
         :root {
             --primary: #D4AF37;
             --dark: #1a1a1a;
@@ -773,18 +793,32 @@
     <!-- 1. Login Screen -->
     <div id="loginOverlay">
         <div class="login-box">
-            <h1 class="logo" style="justify-content: center;">NAIL<span>DESIGN</span></h1>
-            <p style="color: #aaa; margin-top: 0; margin-bottom: 1.5rem; font-size: 0.9rem;">Área de Gestão & Personalização</p>
-            
-            <div style="text-align: left; margin-bottom: 0.4rem; font-size: 0.8rem; color: #888;">SELECIONE O SALÃO / SLUG</div>
-            <select id="loginSalonSelect">
-                <option value="gionails">Gio Nail Design (gionails)</option>
-            </select>
+            <!-- Cabeçalho Dinâmico da Marca / Salão -->
+            <div id="loginBrandHeader" style="margin-bottom: 1.2rem;">
+                <div id="loginSalonIconBadge" style="width: 58px; height: 58px; margin: 0 auto 0.8rem auto; border-radius: 50%; background: rgba(212, 175, 55, 0.15); border: 1.5px solid var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--primary);">
+                    <i class="fas fa-gem" id="loginSalonIcon"></i>
+                </div>
+                <h1 class="logo" id="loginBrandTitle" style="justify-content: center; font-size: 1.55rem; margin-bottom: 0.3rem;">NAIL<span>DESIGN</span></h1>
+                <p id="loginBrandSub" style="color: #aaa; margin: 0; font-size: 0.88rem;">Painel de Gestão & Agendamentos</p>
+            </div>
+
+            <!-- Badge Exclusivo do Salão (visível quando acessado pelo link próprio do salão) -->
+            <div id="loginSalonBadge" style="display: none; align-items: center; justify-content: center; gap: 8px; background: rgba(255,255,255,0.06); border: 1px solid var(--primary); padding: 0.45rem 1rem; border-radius: 20px; font-size: 0.82rem; margin-bottom: 1.4rem; color: #f0f0f0;">
+                <i class="fas fa-shield-alt" style="color: var(--primary);"></i> Salão Exclusivo: <strong id="loginSalonBadgeText" style="color: var(--primary); margin-left: 2px;">Gio Nail Design</strong>
+            </div>
+
+            <!-- Seletor de Salões (VISÍVEL APENAS PARA O MASTER ADMIN / ABEL EM /admin) -->
+            <div id="loginSalonSelectWrapper" style="display: none;">
+                <div style="text-align: left; margin-bottom: 0.4rem; font-size: 0.8rem; color: #888;">SELECIONE O SALÃO / SLUG</div>
+                <select id="loginSalonSelect">
+                    <option value="gionails">Gio Nail Design (gionails)</option>
+                </select>
+            </div>
 
             <div style="text-align: left; margin-bottom: 0.4rem; font-size: 0.8rem; color: #888;">SENHA DE ACESSO</div>
-            <input type="password" id="adminPass" placeholder="Senha do Salão ou Senha Master">
-            <button class="btn-login" onclick="checkLogin()"><i class="fas fa-lock-open"></i> Acessar Painel</button>
-            <p style="font-size: 0.75rem; color: #888; margin-top: 1rem;">(Senha padrão inicial: <code>7777</code>)</p>
+            <input type="password" id="adminPass" placeholder="Digite sua senha de acesso" onkeydown="if(event.key==='Enter') checkLogin()">
+            <button class="btn-login" id="btnLoginSubmit" onclick="checkLogin()"><i class="fas fa-lock-open"></i> Acessar Painel</button>
+            <p id="loginFooterHint" style="font-size: 0.75rem; color: #888; margin-top: 1rem;">(Senha padrão inicial: <code>7777</code>)</p>
         </div>
     </div>
 
@@ -804,6 +838,133 @@
             <button class="btn-login" style="background: var(--warning); color: #111; font-weight: 700;" onclick="submitNewPassword()">
                 <i class="fas fa-check-circle"></i> Salvar Senha e Entrar
             </button>
+        </div>
+    </div>
+
+    <!-- 3. Modal de Edição de Serviço -->
+    <div id="editServiceModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(6px); z-index: 25000; align-items: center; justify-content: center; padding: 1rem;">
+        <div class="login-box" style="text-align: left; max-width: 480px; width: 100%; background: #222; border: 1px solid #444; border-radius: 18px; padding: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem;">
+                <h2 style="margin: 0; color: white; font-size: 1.25rem;"><i class="fas fa-edit" style="color: var(--primary); margin-right: 8px;"></i> Editar Serviço</h2>
+                <button onclick="closeEditServiceModal()" style="background: none; border: none; color: #aaa; font-size: 1.4rem; cursor: pointer; padding: 0.2rem;"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <input type="hidden" id="edit_service_id">
+            
+            <div style="text-align: left; margin-bottom: 0.35rem; font-size: 0.8rem; color: #bbb;">NOME DO SERVIÇO</div>
+            <input type="text" id="edit_service_name" placeholder="Ex: Gel Moldado" style="width: 100%; padding: 0.8rem; border-radius: 8px; border: 1px solid #444; background: #333; color: white; font-size: 0.95rem; margin-bottom: 1rem;" required>
+
+            <div style="text-align: left; margin-bottom: 0.35rem; font-size: 0.8rem; color: #bbb;">PREÇO</div>
+            <div style="position: relative; display: flex; align-items: center; margin-bottom: 0.35rem;">
+                <span style="position: absolute; left: 0.9rem; color: var(--primary); font-size: 0.95rem; pointer-events: none;"><i class="fas fa-tag"></i></span>
+                <input type="text" id="edit_service_price" placeholder="Ex: R$ 130,00" style="width: 100%; padding: 0.8rem 0.8rem 0.8rem 2.3rem; border-radius: 8px; border: 1px solid #444; background: #333; color: white; font-size: 0.95rem;">
+            </div>
+            <small style="color: #888; font-size: 0.75rem; display: block; margin-bottom: 1rem; text-align: left;">Formatado automaticamente com R$</small>
+
+            <div style="text-align: left; margin-bottom: 0.35rem; font-size: 0.8rem; color: #bbb;">ÍCONE (FONT AWESOME)</div>
+            <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 1rem;">
+                <select id="edit_service_icon" onchange="updateIconPreview('edit_service_icon', 'edit_icon_preview')" style="flex: 1; padding: 0.8rem; border-radius: 8px; border: 1px solid #444; background: #333; color: white; font-size: 0.95rem;">
+                    <option value="fas fa-gem">💎 Gema / Joia (fas fa-gem)</option>
+                    <option value="fas fa-crown">👑 Coroa / Luxo Real (fas fa-crown)</option>
+                    <option value="fas fa-hand-sparkles">✨ Mãos Radiantes / Alongamento (fas fa-hand-sparkles)</option>
+                    <option value="fas fa-shield-halved">🛡️ Escudo / Blindagem (fas fa-shield-halved)</option>
+                    <option value="fas fa-scissors">✂️ Tesoura / Cuticulagem (fas fa-scissors)</option>
+                    <option value="fas fa-palette">🎨 Paleta de Cores / Esmaltação (fas fa-palette)</option>
+                    <option value="fas fa-wand-magic-sparkles">🪄 Brilho Especial / Nail Art (fas fa-wand-magic-sparkles)</option>
+                    <option value="fas fa-spa">🌸 Spa dos Pés & Mãos (fas fa-spa)</option>
+                    <option value="fas fa-paint-brush">🖌️ Pincel / Decoração (fas fa-paint-brush)</option>
+                    <option value="fas fa-heart">💖 Coração / Cuidado & Carinho (fas fa-heart)</option>
+                    <option value="fas fa-star">⭐ Estrela / Atendimento VIP (fas fa-star)</option>
+                    <option value="fas fa-feather-pointed">🪶 Pena / Fibra de Vidro (fas fa-feather-pointed)</option>
+                    <option value="fas fa-spray-can-sparkles">🧴 Spray / Brilho & Finalização (fas fa-spray-can-sparkles)</option>
+                    <option value="fas fa-hand-holding-heart">🤲 Toque Delicado / Hidratação (fas fa-hand-holding-heart)</option>
+                    <option value="fas fa-magic">✨ Varinha Mágica (fas fa-magic)</option>
+                </select>
+                <div id="edit_icon_preview" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: rgba(212, 175, 55, 0.15); border: 1px solid var(--primary); border-radius: 8px; color: var(--primary); font-size: 1.25rem; flex-shrink: 0;">
+                    <i class="fas fa-gem"></i>
+                </div>
+            </div>
+
+            <div style="text-align: left; margin-bottom: 0.35rem; font-size: 0.8rem; color: #bbb;">DESCRIÇÃO DO SERVIÇO</div>
+            <textarea id="edit_service_desc" rows="3" placeholder="Descrição detalhada do serviço..." style="width: 100%; padding: 0.8rem; border-radius: 8px; border: 1px solid #444; background: #333; color: white; font-size: 0.95rem; font-family: inherit; resize: vertical; margin-bottom: 1.5rem;"></textarea>
+
+            <div style="display: flex; gap: 0.8rem; justify-content: flex-end;">
+                <button type="button" onclick="closeEditServiceModal()" style="padding: 0.75rem 1.2rem; background: #444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Cancelar</button>
+                <button type="button" onclick="saveEditService()" style="padding: 0.75rem 1.4rem; background: var(--primary); color: #111; border: none; border-radius: 8px; cursor: pointer; font-weight: 700;"><i class="fas fa-save"></i> Salvar Alterações</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Modal de Alteração Rápida de Preço -->
+    <div id="quickPriceModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(6px); z-index: 25000; align-items: center; justify-content: center; padding: 1rem;">
+        <div class="login-box" style="text-align: left; max-width: 440px; width: 100%; background: #222; border: 1px solid #444; border-radius: 18px; padding: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem;">
+                <h2 style="margin: 0; color: white; font-size: 1.2rem;"><i class="fas fa-tag" style="color: var(--primary); margin-right: 8px;"></i> Alterar Preço</h2>
+                <button onclick="closeQuickPriceModal()" style="background: none; border: none; color: #aaa; font-size: 1.4rem; cursor: pointer; padding: 0.2rem;"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <input type="hidden" id="quick_price_service_id">
+            
+            <div style="font-size: 0.95rem; color: #bbb; margin-bottom: 1rem;">
+                Serviço: <strong id="quick_price_service_name" style="color: white; font-weight: 700;"></strong>
+            </div>
+
+            <div style="text-align: left; margin-bottom: 0.35rem; font-size: 0.8rem; color: #bbb;">NOVO PREÇO</div>
+            <div style="position: relative; display: flex; align-items: center; margin-bottom: 0.35rem;">
+                <span style="position: absolute; left: 0.9rem; color: var(--primary); font-size: 0.95rem; pointer-events: none;"><i class="fas fa-tag"></i></span>
+                <input type="text" id="quick_service_price" placeholder="Ex: R$ 80,00" style="width: 100%; padding: 0.8rem 0.8rem 0.8rem 2.3rem; border-radius: 8px; border: 1px solid #444; background: #333; color: white; font-size: 1.1rem; font-weight: 700;">
+            </div>
+            <small style="color: #888; font-size: 0.75rem; display: block; margin-bottom: 1.5rem; text-align: left;">Digite o valor (ex: 80). O R$ é adicionado automaticamente.</small>
+
+            <div style="display: flex; gap: 0.8rem; justify-content: flex-end;">
+                <button type="button" onclick="closeQuickPriceModal()" style="padding: 0.75rem 1.2rem; background: #444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Cancelar</button>
+                <button type="button" onclick="saveQuickPrice()" style="padding: 0.75rem 1.4rem; background: var(--primary); color: #111; border: none; border-radius: 8px; cursor: pointer; font-weight: 700;"><i class="fas fa-check"></i> Salvar Preço</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. Modal de Confirmação de Exclusão de Serviço -->
+    <div id="deleteServiceModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(6px); z-index: 25000; align-items: center; justify-content: center; padding: 1rem;">
+        <div class="login-box" style="text-align: left; max-width: 440px; width: 100%; background: #222; border: 1px solid #662222; border-radius: 18px; padding: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h2 style="margin: 0; color: #ff6b6b; font-size: 1.2rem;"><i class="fas fa-trash-alt" style="margin-right: 8px;"></i> Excluir Serviço</h2>
+                <button onclick="closeDeleteServiceModal()" style="background: none; border: none; color: #aaa; font-size: 1.4rem; cursor: pointer; padding: 0.2rem;"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <input type="hidden" id="delete_service_id">
+            
+            <p style="color: #ddd; font-size: 0.95rem; line-height: 1.5; margin-bottom: 0.5rem;">
+                Deseja realmente remover o serviço <strong id="delete_service_name_label" style="color: white; font-weight: 700;"></strong> da sua página?
+            </p>
+            <p style="color: #aaa; font-size: 0.8rem; margin-bottom: 1.5rem;">
+                ⚠️ Esta ação removerá o serviço imediatamente da sua landing page e do menu de agendamentos.
+            </p>
+
+            <div style="display: flex; gap: 0.8rem; justify-content: flex-end;">
+                <button type="button" onclick="closeDeleteServiceModal()" style="padding: 0.75rem 1.2rem; background: #444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Cancelar</button>
+                <button type="button" onclick="confirmDeleteService()" style="padding: 0.75rem 1.4rem; background: var(--danger); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700;"><i class="fas fa-trash-alt"></i> Excluir Definitivamente</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. Modal de Confirmação de Exclusão de Foto -->
+    <div id="deletePhotoModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(6px); z-index: 25000; align-items: center; justify-content: center; padding: 1rem;">
+        <div class="login-box" style="text-align: left; max-width: 440px; width: 100%; background: #222; border: 1px solid #662222; border-radius: 18px; padding: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h2 style="margin: 0; color: #ff6b6b; font-size: 1.2rem;"><i class="fas fa-trash-alt" style="margin-right: 8px;"></i> Remover Foto</h2>
+                <button onclick="closeDeletePhotoModal()" style="background: none; border: none; color: #aaa; font-size: 1.4rem; cursor: pointer; padding: 0.2rem;"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <input type="hidden" id="delete_photo_id">
+            
+            <p style="color: #ddd; font-size: 0.95rem; line-height: 1.5; margin-bottom: 1.5rem;">
+                Deseja realmente remover esta foto da galeria do seu portfólio?
+            </p>
+
+            <div style="display: flex; gap: 0.8rem; justify-content: flex-end;">
+                <button type="button" onclick="closeDeletePhotoModal()" style="padding: 0.75rem 1.2rem; background: #444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Cancelar</button>
+                <button type="button" onclick="confirmDeletePhoto()" style="padding: 0.75rem 1.4rem; background: var(--danger); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700;"><i class="fas fa-trash-alt"></i> Remover Foto</button>
+            </div>
         </div>
     </div>
 
@@ -943,6 +1104,16 @@
                         <label>Foto de Fundo do Topo / Hero (URL)</label>
                         <input type="text" id="cfg_hero_image" placeholder="Ex: assets/images/banner.jpg ou link web">
                     </div>
+                    <div class="form-field">
+                        <label>Estilo de Fonte / Tipografia</label>
+                        <select id="cfg_font_family">
+                            <option value="Montserrat, Playfair Display">✨ Clássico Glamour (Montserrat & Playfair)</option>
+                            <option value="'Cormorant Garamond', Montserrat">👑 Nobreza & Alta Costura (Cormorant Garamond)</option>
+                            <option value="Poppins, sans-serif">💫 Moderno & Minimalista (Poppins)</option>
+                            <option value="Cinzel, Montserrat">🏛️ Luxo Imperial (Cinzel)</option>
+                            <option value="'Alex Brush', cursive, Montserrat">💖 Caligrafia Romântica & Chic (Alex Brush)</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -1025,17 +1196,36 @@
                     </div>
                     <div class="form-field">
                         <label>Preço</label>
-                        <input type="text" id="new_service_price" placeholder="Ex: R$ 80,00">
+                        <div style="position: relative; display: flex; align-items: center;">
+                            <span style="position: absolute; left: 0.9rem; color: var(--primary); font-size: 0.95rem; pointer-events: none;"><i class="fas fa-tag"></i></span>
+                            <input type="text" id="new_service_price" placeholder="Ex: R$ 80,00" style="padding-left: 2.3rem; width: 100%;">
+                        </div>
+                        <small style="color: #888; font-size: 0.75rem; margin-top: 2px;">Digite o valor (ex: 80). O R$ é adicionado automaticamente.</small>
                     </div>
                     <div class="form-field">
                         <label>Ícone (Font Awesome)</label>
-                        <select id="new_service_icon">
-                            <option value="fas fa-gem">Gema / Joia (fas fa-gem)</option>
-                            <option value="fas fa-spa">Spa (fas fa-spa)</option>
-                            <option value="fas fa-paint-brush">Pincel / Arte (fas fa-paint-brush)</option>
-                            <option value="fas fa-heart">Coração (fas fa-heart)</option>
-                            <option value="fas fa-magic">Varinha Mágica (fas fa-magic)</option>
-                        </select>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <select id="new_service_icon" onchange="updateIconPreview('new_service_icon', 'new_icon_preview')" style="flex: 1;">
+                                <option value="fas fa-gem">💎 Gema / Joia (fas fa-gem)</option>
+                                <option value="fas fa-crown">👑 Coroa / Luxo Real (fas fa-crown)</option>
+                                <option value="fas fa-hand-sparkles">✨ Mãos Radiantes / Alongamento (fas fa-hand-sparkles)</option>
+                                <option value="fas fa-shield-halved">🛡️ Escudo / Blindagem (fas fa-shield-halved)</option>
+                                <option value="fas fa-scissors">✂️ Tesoura / Cuticulagem (fas fa-scissors)</option>
+                                <option value="fas fa-palette">🎨 Paleta de Cores / Esmaltação (fas fa-palette)</option>
+                                <option value="fas fa-wand-magic-sparkles">🪄 Brilho Especial / Nail Art (fas fa-wand-magic-sparkles)</option>
+                                <option value="fas fa-spa">🌸 Spa dos Pés & Mãos (fas fa-spa)</option>
+                                <option value="fas fa-paint-brush">🖌️ Pincel / Decoração (fas fa-paint-brush)</option>
+                                <option value="fas fa-heart">💖 Coração / Cuidado & Carinho (fas fa-heart)</option>
+                                <option value="fas fa-star">⭐ Estrela / Atendimento VIP (fas fa-star)</option>
+                                <option value="fas fa-feather-pointed">🪶 Pena / Fibra de Vidro (fas fa-feather-pointed)</option>
+                                <option value="fas fa-spray-can-sparkles">🧴 Spray / Brilho & Finalização (fas fa-spray-can-sparkles)</option>
+                                <option value="fas fa-hand-holding-heart">🤲 Toque Delicado / Hidratação (fas fa-hand-holding-heart)</option>
+                                <option value="fas fa-magic">✨ Varinha Mágica (fas fa-magic)</option>
+                            </select>
+                            <div id="new_icon_preview" style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: rgba(212, 175, 55, 0.15); border: 1px solid var(--primary); border-radius: 10px; color: var(--primary); font-size: 1.25rem; flex-shrink: 0;">
+                                <i class="fas fa-gem"></i>
+                            </div>
+                        </div>
                     </div>
                     <div class="form-field full-width">
                         <label>Descrição do Serviço</label>
@@ -1158,59 +1348,164 @@
             // Limpar sessões antigas que possam ter ficado salvas sem senha
             localStorage.removeItem('admin_logged');
 
+            // Identificar se a rota é exclusiva de um salão (ex: ?salon=gionails ou /s/gionails/admin)
+            const urlParams = new URLSearchParams(window.location.search);
+            const pathParts = window.location.pathname.split('/').filter(Boolean);
+            let detectedSlug = urlParams.get('salon');
+            if (!detectedSlug && pathParts[0] === 's' && pathParts[1]) {
+                detectedSlug = pathParts[1];
+            }
+
+            const loginWrapper = document.getElementById('loginSalonSelectWrapper');
+            const loginSel = document.getElementById('loginSalonSelect');
+            const loginBadge = document.getElementById('loginSalonBadge');
+            const loginBadgeText = document.getElementById('loginSalonBadgeText');
+            const loginBrandTitle = document.getElementById('loginBrandTitle');
+            const loginBrandSub = document.getElementById('loginBrandSub');
+            const adminPassInput = document.getElementById('adminPass');
+            const loginFooterHint = document.getElementById('loginFooterHint');
+
+            if (detectedSlug) {
+                // ROTA EXCLUSIVA DO SALÃO:
+                // Oculta imediatamente o seletor antes de qualquer chamada assíncrona ao banco
+                document.documentElement.classList.add('salon-exclusive-mode');
+                if (loginWrapper) loginWrapper.style.display = 'none';
+                if (loginSel) {
+                    loginSel.innerHTML = `<option value="${detectedSlug}" selected>${detectedSlug}</option>`;
+                    loginSel.value = detectedSlug;
+                }
+                if (loginBrandSub) loginBrandSub.innerText = 'Painel Exclusivo de Gestão';
+                if (loginBadgeText) loginBadgeText.innerText = detectedSlug;
+                if (loginBadge) loginBadge.style.display = 'inline-flex';
+                if (adminPassInput) adminPassInput.placeholder = 'Digite a senha do salão';
+                if (loginFooterHint) loginFooterHint.innerHTML = '(Dica: no primeiro acesso, utilize a senha padrão <code>7777</code>)';
+            } else {
+                // ROTA MASTER (Abel): exibe o seletor de salões
+                document.documentElement.classList.remove('salon-exclusive-mode');
+                if (loginWrapper) loginWrapper.style.display = 'block';
+                if (loginBadge) loginBadge.style.display = 'none';
+                if (loginBrandTitle) loginBrandTitle.innerHTML = 'NAIL<span>DESIGN</span>';
+                if (loginBrandSub) loginBrandSub.innerText = 'Painel Centralizado (Master)';
+                if (adminPassInput) adminPassInput.placeholder = 'Senha Master ou Senha do Salão';
+            }
+
             try {
                 await initDb();
-                await populateSalonSelects();
             } catch (e) {
                 console.error("Erro init:", e);
             }
 
-            // Identificar salão da URL se houver (ex: ?salon=anails ou /s/anails/admin)
-            const urlParams = new URLSearchParams(window.location.search);
-            const pathParts = window.location.pathname.split('/').filter(Boolean);
-            let slug = urlParams.get('salon');
-            if (!slug && pathParts[0] === 's' && pathParts[1]) {
-                slug = pathParts[1];
-            }
-            if (slug) {
-                const sel = document.getElementById('loginSalonSelect');
-                if (sel) sel.value = slug;
-            }
-
-            // Checar se há login ativo apenas na aba atual (sessionStorage)
-            const sessionActive = sessionStorage.getItem('admin_session_active') === 'true';
-            const sessionSlug = sessionStorage.getItem('admin_session_slug') || slug || 'gionails';
-            const sessionMaster = sessionStorage.getItem('admin_session_master') === 'true';
-
-            if (sessionActive) {
-                isMasterAdmin = sessionMaster;
-                await selectAndLoadSalon(sessionSlug);
-                document.getElementById('loginOverlay').style.display = 'none';
-
-                // Checar se salão ainda deve trocar senha
-                if (!isMasterAdmin && currentSalon && (currentSalon.must_change_password == 1 || currentSalon.admin_password === '7777')) {
-                    document.getElementById('changePasswordOverlay').style.display = 'flex';
+            if (detectedSlug) {
+                // Carregar dados visuais do salão (nome e cor primária)
+                try {
+                    const specificSalon = await getSalonBySlug(detectedSlug);
+                    if (specificSalon) {
+                        if (loginWrapper) loginWrapper.style.display = 'none';
+                        if (loginSel) {
+                            loginSel.innerHTML = `<option value="${specificSalon.slug}" selected>${escapeHtml(specificSalon.name)}</option>`;
+                            loginSel.value = specificSalon.slug;
+                        }
+                        if (loginBrandTitle) loginBrandTitle.innerHTML = escapeHtml(specificSalon.name);
+                        if (loginBadgeText) loginBadgeText.innerText = specificSalon.name;
+                        if (specificSalon.primary_color) {
+                            document.documentElement.style.setProperty('--primary', specificSalon.primary_color);
+                        }
+                    } else {
+                        console.warn(`Salão com slug "${detectedSlug}" não encontrado.`);
+                        alert(`Atenção: O endereço do salão "${detectedSlug}" não foi localizado no sistema.`);
+                    }
+                } catch (err) {
+                    console.error("Erro ao carregar detalhes do salão:", err);
                 }
             } else {
-                // Sempre exigir senha ao abrir a página
-                document.getElementById('loginOverlay').style.display = 'flex';
+                await populateSalonSelects();
             }
+
+            // Checar se há login ativo na aba atual (sessionStorage)
+            const sessionActive = sessionStorage.getItem('admin_session_active') === 'true';
+            const sessionSlug = sessionStorage.getItem('admin_session_slug');
+            const sessionMaster = sessionStorage.getItem('admin_session_master') === 'true';
+
+            if (detectedSlug) {
+                // Rota exclusiva de salão (ex: ?salon=gionails):
+                // Só mantém logado se a sessão for EXATAMENTE a deste salão e NÃO for sessão Master
+                if (sessionActive && !sessionMaster && sessionSlug === detectedSlug) {
+                    isMasterAdmin = false;
+                    await selectAndLoadSalon(detectedSlug);
+                    document.getElementById('loginOverlay').style.display = 'none';
+
+                    // Checar se salão ainda deve trocar senha
+                    if (currentSalon && (currentSalon.must_change_password == 1 || currentSalon.admin_password === '7777')) {
+                        document.getElementById('changePasswordOverlay').style.display = 'flex';
+                    }
+                } else {
+                    // Limpa qualquer sessão Master ou de outro salão para exibir a tela de login exclusiva
+                    sessionStorage.removeItem('admin_session_active');
+                    sessionStorage.removeItem('admin_session_master');
+                    sessionStorage.removeItem('admin_session_slug');
+                    document.getElementById('loginOverlay').style.display = 'flex';
+                }
+            } else {
+                // Rota Master geral (/admin):
+                if (sessionActive && sessionMaster) {
+                    isMasterAdmin = true;
+                    await selectAndLoadSalon(sessionSlug || 'gionails');
+                    document.getElementById('loginOverlay').style.display = 'none';
+                } else {
+                    sessionStorage.removeItem('admin_session_active');
+                    sessionStorage.removeItem('admin_session_master');
+                    sessionStorage.removeItem('admin_session_slug');
+                    document.getElementById('loginOverlay').style.display = 'flex';
+                }
+            }
+
+            // Inicializar máscaras automáticas de preço (R$)
+            setupPriceInput(document.getElementById('new_service_price'));
+            setupPriceInput(document.getElementById('edit_service_price'));
+            setupPriceInput(document.getElementById('quick_service_price'));
+
+            // Inicializar preview de ícones
+            window.updateIconPreview('new_service_icon', 'new_icon_preview');
+            window.updateIconPreview('edit_service_icon', 'edit_icon_preview');
         });
 
         async function populateSalonSelects() {
+            // Se estiver em rota exclusiva de salão, NUNCA executa ou altera o seletor de login
+            const urlParams = new URLSearchParams(window.location.search);
+            const pathParts = window.location.pathname.split('/').filter(Boolean);
+            const isExclusive = urlParams.has('salon') || (pathParts[0] === 's' && pathParts[1]);
+            const wrapper = document.getElementById('loginSalonSelectWrapper');
+
+            if (isExclusive) {
+                if (wrapper) wrapper.style.display = 'none';
+                return;
+            }
+
             try {
                 const salons = await getAllSalons();
                 const loginSel = document.getElementById('loginSalonSelect');
                 const masterSel = document.getElementById('masterSalonSwitch');
+                const isMasterLogin = !wrapper || wrapper.style.display !== 'none';
                 
-                if (loginSel && salons && salons.length > 0) {
+                // Só popula lista de concorrentes se for acesso Master (seletor visível)
+                if (loginSel && salons && salons.length > 0 && isMasterLogin) {
                     loginSel.innerHTML = '';
+                    salons.forEach(s => {
+                        const opt = `<option value="${s.slug}">${escapeHtml(s.name)} (${s.slug})</option>`;
+                        loginSel.innerHTML += opt;
+                    });
+                }
+
+                // Seletor do cabeçalho do painel
+                if (masterSel && salons && salons.length > 0) {
                     masterSel.innerHTML = '';
                     salons.forEach(s => {
-                        const opt = `<option value="${s.slug}">${s.name} (${s.slug})</option>`;
-                        loginSel.innerHTML += opt;
+                        const opt = `<option value="${s.slug}">${escapeHtml(s.name)} (${s.slug})</option>`;
                         masterSel.innerHTML += opt;
                     });
+                    if (currentSalon) {
+                        masterSel.value = currentSalon.slug;
+                    }
                 }
             } catch (err) {
                 console.error("Erro ao listar salões:", err);
@@ -1226,15 +1521,31 @@
             const salon = await getSalonBySlug(slug);
             if (!salon) return alert("Salão não encontrado.");
 
-            // Senha master para Abel ou senha cadastrada do salão (padrão 7777)
-            if (pass === "adminmaster") {
-                isMasterAdmin = true;
-                sessionStorage.setItem('admin_session_master', 'true');
-            } else if (pass === (salon.admin_password || "7777")) {
-                isMasterAdmin = false;
-                sessionStorage.removeItem('admin_session_master');
+            // Identificar se o acesso é pela rota central com combobox ou rota exclusiva de salão
+            const urlParams = new URLSearchParams(window.location.search);
+            const pathParts = window.location.pathname.split('/').filter(Boolean);
+            const isExclusiveSalonRoute = urlParams.has('salon') || (pathParts[0] === 's' && pathParts[1]);
+
+            if (!isExclusiveSalonRoute) {
+                // Rota central /admin (Abel selecionando no combobox):
+                // Aceita 'adminmaster' ou a senha do salão e SEMPRE libera acesso TOTAL a todas as abas!
+                if (pass === "adminmaster" || pass === (salon.admin_password || "7777")) {
+                    isMasterAdmin = true;
+                    sessionStorage.setItem('admin_session_master', 'true');
+                } else {
+                    return alert("Senha incorreta!");
+                }
             } else {
-                return alert("Senha incorreta!");
+                // Rota exclusiva enviada ao salão (sem combobox):
+                if (pass === "adminmaster") {
+                    isMasterAdmin = true;
+                    sessionStorage.setItem('admin_session_master', 'true');
+                } else if (pass === (salon.admin_password || "7777")) {
+                    isMasterAdmin = false;
+                    sessionStorage.removeItem('admin_session_master');
+                } else {
+                    return alert("Senha incorreta!");
+                }
             }
 
             sessionStorage.setItem('admin_session_active', 'true');
@@ -1243,8 +1554,8 @@
 
             await selectAndLoadSalon(slug);
 
-            // Se a senha for a provisória 7777 ou must_change_password == 1, OBRIGAR a troca
-            if (!isMasterAdmin && (salon.must_change_password == 1 || pass === '7777' || salon.admin_password === '7777')) {
+            // Troca de senha provisória obrigatória apenas para a dona do salão no link exclusivo dela
+            if (isExclusiveSalonRoute && !isMasterAdmin && (salon.must_change_password == 1 || pass === '7777' || salon.admin_password === '7777')) {
                 document.getElementById('changePasswordOverlay').style.display = 'flex';
             }
         };
@@ -1282,11 +1593,23 @@
         };
 
         window.logout = function () {
+            const activeSlug = currentSalon ? currentSalon.slug : null;
             sessionStorage.removeItem('admin_session_active');
             sessionStorage.removeItem('admin_session_master');
             sessionStorage.removeItem('admin_session_slug');
             localStorage.removeItem('admin_logged');
-            location.reload();
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const pathParts = window.location.pathname.split('/').filter(Boolean);
+            const hasSalonParam = urlParams.has('salon');
+            const hasSalonPath = pathParts[0] === 's' && pathParts[1];
+
+            // Se estiver em um salão específico sem parâmetro de URL explícito, redireciona para a rota com slug
+            if (!isMasterAdmin && activeSlug && !hasSalonParam && !hasSalonPath) {
+                window.location.href = `?salon=${activeSlug}`;
+            } else {
+                location.reload();
+            }
         };
 
         async function selectAndLoadSalon(slug) {
@@ -1298,18 +1621,36 @@
             const liveUrl = currentSalon.slug === 'gionails' ? '/' : `/s/${currentSalon.slug}`;
             document.getElementById('linkViewLive').href = liveUrl;
 
-            // Se for Master Admin, exibir abas de personalização e controle especial
-            const masterOnlyTabs = ['tab-btn-customize', 'tab-btn-services', 'tab-btn-gallery', 'tab-btn-superadmin'];
+            // Abas visíveis para a dona do salão (Agendamentos e Meus Serviços):
+            document.getElementById('tab-btn-bookings').style.display = 'flex';
+            document.getElementById('tab-btn-services').style.display = 'flex';
+
+            // Abas restritas exclusivamente ao Master Admin (Abel):
+            // 'Personalizar Site', 'Galeria de Fotos', 'Super Admin' e o Seletor no Header
+            const masterOnlyTabs = ['tab-btn-customize', 'tab-btn-gallery', 'tab-btn-superadmin'];
+            const masterSel = document.getElementById('masterSalonSwitch');
+
             if (isMasterAdmin) {
-                masterOnlyTabs.forEach(id => document.getElementById(id).style.display = 'flex');
-                const masterSel = document.getElementById('masterSalonSwitch');
-                masterSel.style.display = 'inline-block';
-                masterSel.value = currentSalon.slug;
+                masterOnlyTabs.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.style.display = 'flex';
+                });
+                if (masterSel) {
+                    masterSel.style.display = 'inline-block';
+                    masterSel.value = currentSalon.slug;
+                }
             } else {
-                masterOnlyTabs.forEach(id => document.getElementById(id).style.display = 'none');
-                document.getElementById('masterSalonSwitch').style.display = 'none';
-                // Garantir que o usuário normal volte para a aba de agendamentos
-                switchAdminTab('bookings');
+                masterOnlyTabs.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.style.display = 'none';
+                });
+                if (masterSel) masterSel.style.display = 'none';
+
+                // Se a dona do salão estiver em uma aba restrita, volta automaticamente para Agendamentos
+                const activeTab = document.querySelector('.admin-tab-btn.active');
+                if (activeTab && masterOnlyTabs.includes(activeTab.id)) {
+                    switchAdminTab('bookings');
+                }
             }
 
             // Aplicar cor do salão no painel
@@ -1318,10 +1659,11 @@
             }
 
             loadBookings();
-            // Só carregar dados de personalização se for Master Admin
+            loadServicesList();
+
+            // Carregar dados de abas restritas apenas se for Master Admin
             if (isMasterAdmin) {
                 fillCustomizeForm();
-                loadServicesList();
                 loadGalleryList();
                 loadSuperAdminSalons();
             }
@@ -1521,6 +1863,8 @@
             document.getElementById('colorHexText').innerText = currentSalon.primary_color || '#D4AF37';
             document.getElementById('cfg_about_image').value = currentSalon.about_image || '';
             document.getElementById('cfg_hero_image').value = currentSalon.hero_image || '';
+            const fontSel = document.getElementById('cfg_font_family');
+            if (fontSel) fontSel.value = currentSalon.font_family || 'Montserrat, Playfair Display';
         }
 
         window.previewColor = function (color) {
@@ -1552,6 +1896,7 @@
                 address: document.getElementById('cfg_address').value,
                 maps_query: document.getElementById('cfg_address').value.replace(/\s+/g, '+'),
                 primary_color: document.getElementById('cfg_primary_color').value,
+                font_family: document.getElementById('cfg_font_family').value,
                 about_image: document.getElementById('cfg_about_image').value,
                 hero_image: document.getElementById('cfg_hero_image').value
             };
@@ -1567,6 +1912,85 @@
         };
 
         // ------------------ MEUS SERVIÇOS ------------------
+        let allSalonServices = [];
+
+        function formatPrice(val) {
+            if (!val) return '';
+            let str = String(val).trim();
+            if (!str) return '';
+            
+            // Remove prefixo R$ e espaços para higienização
+            str = str.replace(/^r\$\s*/i, '').trim();
+            if (!str) return '';
+
+            // Se for apenas texto sem nenhum número (ex: "Sob Consulta", "A Combinar"), preserva
+            if (!/\d/.test(str)) return String(val).trim();
+
+            // Padrão brasileiro com vírgula (ex: 80,00 ou 1.250,50)
+            if (str.includes(',')) {
+                const parts = str.split(',');
+                const intPart = parts[0].replace(/\D/g, '') || '0';
+                let decPart = parts.slice(1).join('').replace(/\D/g, '');
+                if (decPart.length === 0) decPart = '00';
+                else if (decPart.length === 1) decPart = decPart + '0';
+                else if (decPart.length > 2) decPart = decPart.substring(0, 2);
+                const num = parseInt(intPart, 10);
+                return `R$ ${isNaN(num) ? '0' : num.toLocaleString('pt-BR')},${decPart}`;
+            }
+
+            // Padrão com ponto decimal (ex: 80.00 ou 130.5)
+            if (str.includes('.')) {
+                const parts = str.split('.');
+                if (parts.length === 2 && parts[1].length <= 2) {
+                    const intPart = parts[0].replace(/\D/g, '') || '0';
+                    let decPart = parts[1].replace(/\D/g, '');
+                    if (decPart.length === 0) decPart = '00';
+                    else if (decPart.length === 1) decPart = decPart + '0';
+                    const num = parseInt(intPart, 10);
+                    return `R$ ${isNaN(num) ? '0' : num.toLocaleString('pt-BR')},${decPart}`;
+                }
+            }
+
+            // Apenas dígitos inteiros (ex: 80, 120, 1500)
+            const cleanNum = str.replace(/\D/g, '');
+            if (!cleanNum) return String(val).trim();
+            const num = parseInt(cleanNum, 10);
+            return `R$ ${isNaN(num) ? '0' : num.toLocaleString('pt-BR')},00`;
+        }
+
+        function setupPriceInput(input) {
+            if (!input) return;
+
+            // Formatação inteligente enquanto o usuário digita
+            input.addEventListener('input', function () {
+                let val = input.value;
+                if (!val) return;
+
+                const raw = val.replace(/^r\$?\s*/i, '');
+                if (!raw) {
+                    if (/^r\$?\s*$/i.test(val)) {
+                        input.value = '';
+                        return;
+                    }
+                }
+
+                // Inserir automaticamente 'R$ ' logo ao começar a digitar
+                if (!val.startsWith('R$ ')) {
+                    input.value = 'R$ ' + raw;
+                }
+            });
+
+            // Ao sair do campo, normalizar no formato padrão R$ 00,00
+            input.addEventListener('blur', function () {
+                const val = input.value.trim();
+                if (!val || /^r\$?\s*$/i.test(val)) {
+                    input.value = '';
+                    return;
+                }
+                input.value = formatPrice(val);
+            });
+        }
+
         async function loadServicesList() {
             if (!currentSalon) return;
             const container = document.getElementById('servicesCardsContainer');
@@ -1574,6 +1998,7 @@
 
             try {
                 const services = await getServicesBySalon(currentSalon.id);
+                allSalonServices = services || [];
                 if (!services || services.length === 0) {
                     container.innerHTML = '<p style="color:#888;">Nenhum serviço cadastrado.</p>';
                     return;
@@ -1583,15 +2008,17 @@
                 services.forEach(s => {
                     const card = document.createElement('div');
                     card.className = 'item-card';
+                    const formattedPrice = s.price ? formatPrice(s.price) : '';
                     card.innerHTML = `
                         <div>
                             <h4><i class="${s.icon || 'fas fa-gem'}" style="color:var(--primary); margin-right:6px;"></i> ${escapeHtml(s.name)}</h4>
                             <p>${escapeHtml(s.description || 'Sem descrição')}</p>
-                            <div class="price">${escapeHtml(s.price || '')}</div>
+                            <div class="price">${escapeHtml(formattedPrice)}</div>
                         </div>
-                        <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1rem;">
-                            <button class="btn-icon btn-cancel" onclick="editServicePrice(${s.id}, '${escapeHtml(s.price || '')}')" title="Alterar Preço"><i class="fas fa-tag"></i></button>
-                            <button class="btn-icon btn-delete" onclick="removeService(${s.id})" title="Excluir Serviço"><i class="fas fa-trash-alt"></i></button>
+                        <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-top:1rem; flex-wrap:wrap;">
+                            <button class="btn-icon" onclick="openEditServiceModal(${s.id})" title="Alterar Serviço Completo" style="background: rgba(212, 175, 55, 0.15); color: var(--primary);"><i class="fas fa-edit"></i><span class="btn-label-mobile">Editar</span></button>
+                            <button class="btn-icon btn-cancel" onclick="openQuickPriceModal(${s.id})" title="Alterar Apenas Preço"><i class="fas fa-tag"></i><span class="btn-label-mobile">Preço</span></button>
+                            <button class="btn-icon btn-delete" onclick="openDeleteServiceModal(${s.id})" title="Excluir Serviço"><i class="fas fa-trash-alt"></i><span class="btn-label-mobile">Excluir</span></button>
                         </div>
                     `;
                     container.appendChild(card);
@@ -1601,24 +2028,87 @@
             }
         }
 
+        window.updateIconPreview = function (selectId, previewId) {
+            const sel = document.getElementById(selectId);
+            const prev = document.getElementById(previewId);
+            if (sel && prev) {
+                prev.innerHTML = `<i class="${sel.value}"></i>`;
+            }
+        };
+
+        window.openEditServiceModal = function (id) {
+            const s = allSalonServices.find(item => item.id == id);
+            if (!s) return;
+            document.getElementById('edit_service_id').value = s.id;
+            document.getElementById('edit_service_name').value = s.name || '';
+            document.getElementById('edit_service_price').value = s.price ? formatPrice(s.price) : '';
+            document.getElementById('edit_service_desc').value = s.description || '';
+            const iconSel = document.getElementById('edit_service_icon');
+            if (iconSel) {
+                iconSel.value = s.icon || 'fas fa-gem';
+                updateIconPreview('edit_service_icon', 'edit_icon_preview');
+            }
+            document.getElementById('editServiceModal').style.display = 'flex';
+        };
+
+        window.closeEditServiceModal = function () {
+            document.getElementById('editServiceModal').style.display = 'none';
+        };
+
+        window.saveEditService = async function () {
+            const id = document.getElementById('edit_service_id').value;
+            const name = document.getElementById('edit_service_name').value.trim();
+            let price = document.getElementById('edit_service_price').value.trim();
+            const icon = document.getElementById('edit_service_icon').value;
+            const desc = document.getElementById('edit_service_desc').value.trim();
+
+            if (!name) return alert("Informe o nome do serviço.");
+
+            if (price) {
+                price = formatPrice(price);
+            }
+
+            try {
+                await executeQuery(
+                    "UPDATE services SET name = ?, price = ?, icon = ?, description = ? WHERE id = ?",
+                    [name, price, icon, desc, id]
+                );
+                closeEditServiceModal();
+                alert("✨ Serviço atualizado com sucesso!");
+                loadServicesList();
+            } catch (err) {
+                console.error("Erro ao atualizar serviço:", err);
+                alert("Erro ao atualizar serviço.");
+            }
+        };
+
         window.addNewService = async function () {
             if (!currentSalon) return;
             const name = document.getElementById('new_service_name').value.trim();
-            const price = document.getElementById('new_service_price').value.trim();
+            let price = document.getElementById('new_service_price').value.trim();
             const icon = document.getElementById('new_service_icon').value;
             const desc = document.getElementById('new_service_desc').value.trim();
 
             if (!name) return alert("Informe o nome do serviço.");
+
+            if (price) {
+                price = formatPrice(price);
+            }
 
             try {
                 await executeQuery(
                     "INSERT INTO services (salon_id, name, description, price, icon) VALUES (?, ?, ?, ?, ?)",
                     [currentSalon.id, name, desc, price, icon]
                 );
-                alert("Serviço adicionado com sucesso!");
+                alert("✨ Serviço adicionado com sucesso!");
                 document.getElementById('new_service_name').value = '';
                 document.getElementById('new_service_price').value = '';
                 document.getElementById('new_service_desc').value = '';
+                const newIconSel = document.getElementById('new_service_icon');
+                if (newIconSel) {
+                    newIconSel.value = 'fas fa-gem';
+                    updateIconPreview('new_service_icon', 'new_icon_preview');
+                }
                 loadServicesList();
             } catch (err) {
                 console.error("Erro ao adicionar serviço:", err);
@@ -1626,27 +2116,79 @@
             }
         };
 
-        window.editServicePrice = async function (id, currentPrice) {
-            const newPrice = prompt("Digite o novo preço para este serviço:", currentPrice);
-            if (newPrice !== null) {
-                try {
-                    await executeQuery("UPDATE services SET price = ? WHERE id = ?", [newPrice, id]);
-                    loadServicesList();
-                } catch (e) {
-                    alert("Erro ao alterar preço.");
-                }
+        // ------------------ MODAL DE ALTERAÇÃO RÁPIDA DE PREÇO ------------------
+        window.openQuickPriceModal = function (id) {
+            const s = allSalonServices.find(item => item.id == id);
+            if (!s) return;
+            document.getElementById('quick_price_service_id').value = s.id;
+            document.getElementById('quick_price_service_name').innerText = s.name;
+            const currentFormatted = s.price ? formatPrice(s.price) : '';
+            const priceInput = document.getElementById('quick_service_price');
+            priceInput.value = currentFormatted;
+            document.getElementById('quickPriceModal').style.display = 'flex';
+            setTimeout(() => {
+                priceInput.focus();
+                priceInput.select();
+            }, 50);
+        };
+
+        window.closeQuickPriceModal = function () {
+            document.getElementById('quickPriceModal').style.display = 'none';
+        };
+
+        window.saveQuickPrice = async function () {
+            const id = document.getElementById('quick_price_service_id').value;
+            let price = document.getElementById('quick_service_price').value.trim();
+            if (!id) return;
+            if (price) {
+                price = formatPrice(price);
+            }
+            try {
+                await executeQuery("UPDATE services SET price = ? WHERE id = ?", [price, id]);
+                closeQuickPriceModal();
+                alert("✨ Preço atualizado com sucesso!");
+                loadServicesList();
+            } catch (e) {
+                console.error("Erro ao alterar preço:", e);
+                alert("Erro ao alterar preço.");
             }
         };
 
-        window.removeService = async function (id) {
-            if (confirm("Deseja realmente remover este serviço da landing page?")) {
-                try {
-                    await executeQuery("DELETE FROM services WHERE id = ?", [id]);
-                    loadServicesList();
-                } catch (e) {
-                    alert("Erro ao remover serviço.");
-                }
+        // Mantém compatibilidade com chamadas diretas
+        window.editServicePrice = function (id) {
+            window.openQuickPriceModal(id);
+        };
+
+        // ------------------ MODAL DE EXCLUSÃO DE SERVIÇO ------------------
+        window.openDeleteServiceModal = function (id) {
+            const s = allSalonServices.find(item => item.id == id);
+            if (!s) return;
+            document.getElementById('delete_service_id').value = s.id;
+            document.getElementById('delete_service_name_label').innerText = `"${s.name}"`;
+            document.getElementById('deleteServiceModal').style.display = 'flex';
+        };
+
+        window.closeDeleteServiceModal = function () {
+            document.getElementById('deleteServiceModal').style.display = 'none';
+        };
+
+        window.confirmDeleteService = async function () {
+            const id = document.getElementById('delete_service_id').value;
+            if (!id) return;
+            try {
+                await executeQuery("DELETE FROM services WHERE id = ?", [id]);
+                closeDeleteServiceModal();
+                alert("✨ Serviço removido com sucesso!");
+                loadServicesList();
+            } catch (e) {
+                console.error("Erro ao remover serviço:", e);
+                alert("Erro ao remover serviço.");
             }
+        };
+
+        // Mantém compatibilidade com chamadas diretas
+        window.removeService = function (id) {
+            window.openDeleteServiceModal(id);
         };
 
         // ------------------ GALERIA DE FOTOS ------------------
@@ -1701,15 +2243,32 @@
             }
         };
 
-        window.removePhoto = async function (id) {
-            if (confirm("Deseja remover esta foto do portfólio?")) {
-                try {
-                    await executeQuery("DELETE FROM gallery WHERE id = ?", [id]);
-                    loadGalleryList();
-                } catch (e) {
-                    alert("Erro ao remover foto.");
-                }
+        // ------------------ MODAL DE EXCLUSÃO DE FOTO ------------------
+        window.openDeletePhotoModal = function (id) {
+            document.getElementById('delete_photo_id').value = id;
+            document.getElementById('deletePhotoModal').style.display = 'flex';
+        };
+
+        window.closeDeletePhotoModal = function () {
+            document.getElementById('deletePhotoModal').style.display = 'none';
+        };
+
+        window.confirmDeletePhoto = async function () {
+            const id = document.getElementById('delete_photo_id').value;
+            if (!id) return;
+            try {
+                await executeQuery("DELETE FROM gallery WHERE id = ?", [id]);
+                closeDeletePhotoModal();
+                alert("✨ Foto removida com sucesso!");
+                loadGalleryList();
+            } catch (e) {
+                console.error("Erro ao remover foto:", e);
+                alert("Erro ao remover foto.");
             }
+        };
+
+        window.removePhoto = function (id) {
+            window.openDeletePhotoModal(id);
         };
 
         // ------------------ SUPER ADMIN: CRIAR SALÃO ------------------
@@ -1745,15 +2304,23 @@
                     html += `
                         <tr>
                             <td><strong>#${s.id}</strong></td>
-                            <td>${escapeHtml(s.name)}</td>
-                            <td><code>${s.slug}</code></td>
+                            <td><strong style="color:white; font-size:0.95rem;">${escapeHtml(s.name)}</strong></td>
+                            <td><code style="background:#222; padding:3px 8px; border-radius:6px; color:var(--primary); font-size:0.85rem;">${s.slug}</code></td>
                             <td>${escapeHtml(s.phone || '-')}</td>
                             <td>
-                                <a href="${siteUrl}" target="_blank" style="color:var(--primary); text-decoration:none; margin-right:12px; font-weight:600;"><i class="fas fa-globe"></i> Site</a>
-                                <a href="${adminUrl}" target="_blank" style="color:#444; text-decoration:none; font-weight:600;"><i class="fas fa-lock"></i> Painel</a>
+                                <div style="display:flex; flex-direction:column; gap:6px;">
+                                    <div style="display:flex; align-items:center; gap:8px;">
+                                        <a href="${siteUrl}" target="_blank" style="color:var(--primary); text-decoration:none; font-weight:600; font-size:0.85rem;"><i class="fas fa-globe"></i> Ver Site</a>
+                                        <button type="button" style="padding:2px 8px; font-size:0.75rem; background:#333; color:#ccc; border:1px solid #555; border-radius:4px; cursor:pointer;" onclick="copySalonLink('${siteUrl}', 'Link do Site: ${escapeHtml(s.name)}')"><i class="fas fa-copy"></i> Copiar Site</button>
+                                    </div>
+                                    <div style="display:flex; align-items:center; gap:8px;">
+                                        <a href="${adminUrl}" target="_blank" style="color:#eee; text-decoration:none; font-weight:600; font-size:0.85rem;"><i class="fas fa-lock"></i> Painel Exclusivo</a>
+                                        <button type="button" style="padding:2px 8px; font-size:0.75rem; background:rgba(212,175,55,0.2); color:var(--primary); border:1px solid var(--primary); border-radius:4px; cursor:pointer; font-weight:600;" onclick="copySalonLink('${adminUrl}', 'Painel Exclusivo: ${escapeHtml(s.name)}')"><i class="fas fa-copy"></i> Copiar Painel</button>
+                                    </div>
+                                </div>
                             </td>
                             <td>
-                                <button class="btn-primary-action" style="padding:0.4rem 0.8rem; font-size:0.8rem;" onclick="switchSalon('${s.slug}')">Gerenciar</button>
+                                <button class="btn-primary-action" style="padding:0.4rem 0.8rem; font-size:0.8rem;" onclick="switchSalon('${s.slug}')"><i class="fas fa-sliders-h"></i> Gerenciar</button>
                             </td>
                         </tr>
                     `;
@@ -1765,6 +2332,19 @@
                 container.innerHTML = '<p style="color:var(--danger);">Erro ao listar salões.</p>';
             }
         }
+
+        window.copySalonLink = function (path, label) {
+            const fullUrl = window.location.origin + path;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(fullUrl).then(() => {
+                    alert(`✅ Link copiado para a Área de Transferência!\n\n${label}\n${fullUrl}\n\nVocê já pode colar diretamente no WhatsApp.`);
+                }).catch(() => {
+                    prompt(`Copie o link abaixo:`, fullUrl);
+                });
+            } else {
+                prompt(`Copie o link abaixo:`, fullUrl);
+            }
+        };
 
         window.createSuperSalon = async function () {
             const name = document.getElementById('sa_name').value.trim();
@@ -1828,7 +2408,8 @@
                     }
                 }
 
-                alert(`🎉 Salão "${name}" criado com sucesso!\n\nLink do Site: /s/${slug}\nPainel Admin: /admin.html?salon=${slug}\nSenha Provisória: ${password}\n(A cliente será obrigada a criar sua nova senha pessoal no 1º acesso)`);
+                const adminExclusiveUrl = `/admin.html?salon=${slug}`;
+                alert(`🎉 Salão "${name}" criado com sucesso!\n\n🌐 Link do Site: /s/${slug}\n🔐 Painel Exclusivo: ${adminExclusiveUrl}\n🔑 Senha Provisória: ${password}\n\n(A dona do salão acessará apenas o seu próprio salão sem ver concorrentes e cadastrará sua nova senha pessoal no 1º acesso)`);
 
                 // Limpar campos
                 document.getElementById('sa_name').value = '';

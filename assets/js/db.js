@@ -43,7 +43,10 @@ export async function executeQuery(sql, args = []) {
     }
 }
 
+let isDbInitialized = false;
+
 export async function initDb() {
+    if (isDbInitialized) return;
     // 1. Criar tabela de salões/profissionais
     await executeQuery(`
         CREATE TABLE IF NOT EXISTS salons (
@@ -65,6 +68,7 @@ export async function initDb() {
             address TEXT,
             maps_query TEXT,
             primary_color TEXT DEFAULT '#D4AF37',
+            font_family TEXT DEFAULT 'Montserrat, Playfair Display',
             hero_image TEXT,
             about_image TEXT,
             contact_bg TEXT,
@@ -128,17 +132,45 @@ export async function initDb() {
         // Já existe a coluna must_change_password
     }
 
+    // Adicionar coluna font_family se não existir
+    try {
+        await executeQuery("ALTER TABLE salons ADD COLUMN font_family TEXT DEFAULT 'Montserrat, Playfair Display';");
+    } catch (_) {
+        // Já existe a coluna font_family
+    }
+
     // Migrar salões existentes: trocar senha antiga padrão '1234' para '7777' e forçar troca
     try {
         await executeQuery("UPDATE salons SET admin_password = '7777', must_change_password = 1 WHERE admin_password = '1234';");
     } catch (_) {
         // Ignorar erros de migração
     }
+    isDbInitialized = true;
 }
 
-// Buscar dados de um salão pelo slug (ex: 'gionails')
+// Buscar dados de um salão pelo slug (ex: 'gionails' ou 'bellanails')
 export async function getSalonBySlug(slug) {
-    const rows = await executeQuery("SELECT * FROM salons WHERE slug = ? LIMIT 1", [slug]);
+    if (!slug) return null;
+    const cleanSlug = String(slug).toLowerCase().trim().replace(/^\/+|\/+$/g, '');
+
+    // 1. Busca exata (case-insensitive)
+    let rows = await executeQuery("SELECT * FROM salons WHERE LOWER(slug) = ? LIMIT 1", [cleanSlug]);
+    if (rows && rows.length > 0) return rows[0];
+
+    // 2. Variação comum de digitação / alias: bellanais <-> bellanails / belanails
+    if (cleanSlug === 'bellanais' || cleanSlug === 'belanails' || cleanSlug === 'belanais') {
+        rows = await executeQuery("SELECT * FROM salons WHERE LOWER(slug) = 'bellanails' OR LOWER(slug) = 'bellanais' LIMIT 1");
+        if (rows && rows.length > 0) return rows[0];
+    } else if (cleanSlug === 'bellanails') {
+        rows = await executeQuery("SELECT * FROM salons WHERE LOWER(slug) = 'bellanais' OR LOWER(slug) = 'bellanails' LIMIT 1");
+        if (rows && rows.length > 0) return rows[0];
+    }
+
+    // 3. Busca flexível por aproximação no slug ou nome
+    rows = await executeQuery(
+        "SELECT * FROM salons WHERE LOWER(slug) LIKE ? OR LOWER(name) LIKE ? LIMIT 1",
+        [`%${cleanSlug}%`, `%${cleanSlug}%`]
+    );
     return (rows && rows.length > 0) ? rows[0] : null;
 }
 
