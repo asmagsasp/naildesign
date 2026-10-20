@@ -423,13 +423,14 @@ nav a:hover {
 }
 
 .blurred-text {
-    filter: blur(6px);
+    filter: blur(7px);
     user-select: none;
     -webkit-user-select: none;
     display: inline-block;
     letter-spacing: 0.5px;
-    transition: filter 0.3s ease;
     cursor: default;
+    pointer-events: none;
+    opacity: 0.8;
 }
 
 .map-placeholder {

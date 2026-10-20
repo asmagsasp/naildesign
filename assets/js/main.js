@@ -386,40 +386,92 @@ export function renderSalonBasic(salon) {
         }
 
         // 5. Contato & Redes Sociais
-        if (salon.phone) {
-            const clean = salon.phone.replace(/\D/g, '');
-            const finalPhone = clean.startsWith('55') ? clean : '55' + clean;
-            const formatted = clean.length >= 10 ? `(${clean.slice(-11, -9)}) ${clean.slice(-9, -4)}-${clean.slice(-4)}` : salon.phone;
+        const isGioNails = (salon.slug === 'gionails' || String(salon.id) === '1' || salon.name?.toLowerCase().includes('gio'));
 
-            const wLink = document.getElementById('contactWhatsappLink');
-            if (wLink) wLink.href = `https://wa.me/${finalPhone}`;
-            const wText = document.getElementById('contactWhatsappText');
+        const wLink = document.getElementById('contactWhatsappLink');
+        const wText = document.getElementById('contactWhatsappText');
+        const iLink = document.getElementById('contactInstagramLink');
+        const iText = document.getElementById('contactInstagramText');
+        const addrEl = document.getElementById('contactAddress');
+        const mapLink = document.getElementById('contactMapsLink');
+
+        if (isGioNails) {
+            // No Gio Nails (salão modelo de demonstração): WhatsApp, Instagram e Endereço sempre borrados
             if (wText) {
-                wText.innerText = formatted;
-                wText.classList.remove('blurred-text');
-                wText.removeAttribute('title');
+                wText.innerText = '(19) 99999-5149';
+                wText.classList.add('blurred-text');
+                wText.setAttribute('title', 'Informação oculta na demonstração');
             }
-        }
+            if (wLink) {
+                wLink.removeAttribute('href');
+                wLink.style.cursor = 'default';
+                wLink.onclick = (e) => { e.preventDefault(); return false; };
+            }
 
-        if (salon.instagram) {
-            const cleanInsta = salon.instagram.replace('@', '');
-            const iLink = document.getElementById('contactInstagramLink');
-            if (iLink) iLink.href = `https://www.instagram.com/${cleanInsta}`;
-            const iText = document.getElementById('contactInstagramText');
             if (iText) {
-                iText.innerText = `@${cleanInsta}`;
-                iText.classList.remove('blurred-text');
-                iText.removeAttribute('title');
+                iText.innerText = '@gionails80';
+                iText.classList.add('blurred-text');
+                iText.setAttribute('title', 'Informação oculta na demonstração');
             }
-        }
+            if (iLink) {
+                iLink.removeAttribute('href');
+                iLink.style.cursor = 'default';
+                iLink.onclick = (e) => { e.preventDefault(); return false; };
+            }
 
-        if (salon.address) {
-            const addrEl = document.getElementById('contactAddress');
-            if (addrEl) addrEl.innerText = salon.address;
-        }
-        if (salon.maps_query) {
-            const mapLink = document.getElementById('contactMapsLink');
-            if (mapLink) mapLink.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(salon.maps_query)}`;
+            if (addrEl) {
+                addrEl.innerHTML = salon.address || 'Rua Steffano Scarazatto, 143 <br> Jardim da Colônia - Jundiaí - SP';
+                addrEl.classList.add('blurred-text');
+                addrEl.setAttribute('title', 'Informação oculta na demonstração');
+            }
+            if (mapLink) {
+                mapLink.removeAttribute('href');
+                mapLink.style.cursor = 'default';
+                mapLink.onclick = (e) => { e.preventDefault(); return false; };
+            }
+        } else {
+            // Outros salões (ex: Bella Nails): exibir dados normais e ativos
+            if (salon.phone) {
+                const clean = salon.phone.replace(/\D/g, '');
+                const finalPhone = clean.startsWith('55') ? clean : '55' + clean;
+                const formatted = clean.length >= 10 ? `(${clean.slice(-11, -9)}) ${clean.slice(-9, -4)}-${clean.slice(-4)}` : salon.phone;
+
+                if (wLink) {
+                    wLink.href = `https://wa.me/${finalPhone}`;
+                    wLink.style.cursor = 'pointer';
+                    wLink.onclick = null;
+                }
+                if (wText) {
+                    wText.innerText = formatted;
+                    wText.classList.remove('blurred-text');
+                    wText.removeAttribute('title');
+                }
+            }
+
+            if (salon.instagram) {
+                const cleanInsta = salon.instagram.replace('@', '');
+                if (iLink) {
+                    iLink.href = `https://www.instagram.com/${cleanInsta}`;
+                    iLink.style.cursor = 'pointer';
+                    iLink.onclick = null;
+                }
+                if (iText) {
+                    iText.innerText = `@${cleanInsta}`;
+                    iText.classList.remove('blurred-text');
+                    iText.removeAttribute('title');
+                }
+            }
+
+            if (salon.address && addrEl) {
+                addrEl.innerText = salon.address;
+                addrEl.classList.remove('blurred-text');
+                addrEl.removeAttribute('title');
+            }
+            if (salon.maps_query && mapLink) {
+                mapLink.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(salon.maps_query)}`;
+                mapLink.style.cursor = 'pointer';
+                mapLink.onclick = null;
+            }
         }
     } catch (e) {
         console.error("Erro ao renderizar dados básicos do salão:", e);
