@@ -1344,6 +1344,13 @@
         let allBookings = [];
         let currentFilter = 'all';
 
+        function isDemoSalon(val) {
+            if (!val) return false;
+            const s = typeof val === 'string' ? val : (val.slug || '');
+            const clean = s.toLowerCase().trim().replace(/^\/+|\/+$/g, '');
+            return clean === 'bellanais' || clean === 'bellanails' || clean === 'belanails' || clean === 'belanais' || clean === 'gionails';
+        }
+
         // 1. Inicialização
         document.addEventListener('DOMContentLoaded', async () => {
             // Limpar sessões antigas que possam ter ficado salvas sem senha
@@ -1366,6 +1373,8 @@
             const adminPassInput = document.getElementById('adminPass');
             const loginFooterHint = document.getElementById('loginFooterHint');
 
+            const isDemo = isDemoSalon(detectedSlug);
+
             if (detectedSlug) {
                 // ROTA EXCLUSIVA DO SALÃO:
                 // Oculta imediatamente o seletor antes de qualquer chamada assíncrona ao banco
@@ -1375,11 +1384,18 @@
                     loginSel.innerHTML = `<option value="${detectedSlug}" selected>${detectedSlug}</option>`;
                     loginSel.value = detectedSlug;
                 }
-                if (loginBrandSub) loginBrandSub.innerText = 'Painel Exclusivo de Gestão';
-                if (loginBadgeText) loginBadgeText.innerText = detectedSlug;
+                if (isDemo) {
+                    if (loginBrandSub) loginBrandSub.innerText = 'Painel de Demonstração (Conhecer Admin)';
+                    if (loginBadgeText) loginBadgeText.innerText = 'Demonstração';
+                    if (adminPassInput) adminPassInput.placeholder = 'Digite a senha 7777';
+                    if (loginFooterHint) loginFooterHint.innerHTML = '(Painel de Demonstração — Senha de acesso: <code>7777</code>)';
+                } else {
+                    if (loginBrandSub) loginBrandSub.innerText = 'Painel Exclusivo de Gestão';
+                    if (loginBadgeText) loginBadgeText.innerText = detectedSlug;
+                    if (adminPassInput) adminPassInput.placeholder = 'Digite a senha do salão';
+                    if (loginFooterHint) loginFooterHint.innerHTML = '(Dica: no primeiro acesso, utilize a senha padrão <code>7777</code>)';
+                }
                 if (loginBadge) loginBadge.style.display = 'inline-flex';
-                if (adminPassInput) adminPassInput.placeholder = 'Digite a senha do salão';
-                if (loginFooterHint) loginFooterHint.innerHTML = '(Dica: no primeiro acesso, utilize a senha padrão <code>7777</code>)';
             } else {
                 // ROTA MASTER (Abel): exibe o seletor de salões
                 document.documentElement.classList.remove('salon-exclusive-mode');
@@ -1407,7 +1423,7 @@
                             loginSel.value = specificSalon.slug;
                         }
                         if (loginBrandTitle) loginBrandTitle.innerHTML = escapeHtml(specificSalon.name);
-                        if (loginBadgeText) loginBadgeText.innerText = specificSalon.name;
+                        if (loginBadgeText) loginBadgeText.innerText = isDemo ? 'Demonstração' : specificSalon.name;
                         if (specificSalon.primary_color) {
                             document.documentElement.style.setProperty('--primary', specificSalon.primary_color);
                         }
@@ -1435,9 +1451,11 @@
                     await selectAndLoadSalon(detectedSlug);
                     document.getElementById('loginOverlay').style.display = 'none';
 
-                    // Checar se salão ainda deve trocar senha
-                    if (currentSalon && (currentSalon.must_change_password == 1 || currentSalon.admin_password === '7777')) {
+                    // Checar se salão ainda deve trocar senha (NUNCA no salão de demonstração)
+                    if (!isDemoSalon(detectedSlug) && !isDemoSalon(currentSalon) && currentSalon && (currentSalon.must_change_password == 1 || currentSalon.admin_password === '7777')) {
                         document.getElementById('changePasswordOverlay').style.display = 'flex';
+                    } else {
+                        document.getElementById('changePasswordOverlay').style.display = 'none';
                     }
                 } else {
                     // Limpa qualquer sessão Master ou de outro salão para exibir a tela de login exclusiva
@@ -1526,11 +1544,12 @@
             const urlParams = new URLSearchParams(window.location.search);
             const pathParts = window.location.pathname.split('/').filter(Boolean);
             const isExclusiveSalonRoute = urlParams.has('salon') || (pathParts[0] === 's' && pathParts[1]);
+            const isDemo = isDemoSalon(slug) || isDemoSalon(salon);
 
             if (!isExclusiveSalonRoute) {
                 // Rota central /admin (Abel selecionando no combobox):
-                // Aceita 'adminmaster' ou a senha do salão e SEMPRE libera acesso TOTAL a todas as abas!
-                if (pass === "adminmaster" || pass === (salon.admin_password || "7777")) {
+                // Aceita 'adminmaster' ou a senha do salão (ou 7777 se for demo) e SEMPRE libera acesso TOTAL a todas as abas!
+                if (pass === "adminmaster" || (isDemo && pass === "7777") || pass === (salon.admin_password || "7777")) {
                     isMasterAdmin = true;
                     sessionStorage.setItem('admin_session_master', 'true');
                 } else {
@@ -1541,10 +1560,13 @@
                 if (pass === "adminmaster") {
                     isMasterAdmin = true;
                     sessionStorage.setItem('admin_session_master', 'true');
-                } else if (pass === (salon.admin_password || "7777")) {
+                } else if ((isDemo && pass === "7777") || pass === (salon.admin_password || "7777")) {
                     isMasterAdmin = false;
                     sessionStorage.removeItem('admin_session_master');
                 } else {
+                    if (isDemo) {
+                        return alert("Senha incorreta! Para acessar este painel de demonstração, digite a senha 7777.");
+                    }
                     return alert("Senha incorreta!");
                 }
             }
@@ -1555,13 +1577,21 @@
 
             await selectAndLoadSalon(slug);
 
-            // Troca de senha provisória obrigatória apenas para a dona do salão no link exclusivo dela
-            if (isExclusiveSalonRoute && !isMasterAdmin && (salon.must_change_password == 1 || pass === '7777' || salon.admin_password === '7777')) {
+            // Troca de senha provisória obrigatória apenas para clientes reais no link exclusivo (NUNCA no salão de demonstração)
+            if (!isDemo && !isDemoSalon(currentSalon) && isExclusiveSalonRoute && !isMasterAdmin && (salon.must_change_password == 1 || pass === '7777' || salon.admin_password === '7777')) {
                 document.getElementById('changePasswordOverlay').style.display = 'flex';
+            } else {
+                document.getElementById('changePasswordOverlay').style.display = 'none';
             }
         };
 
         window.submitNewPassword = async function () {
+            // Se for salão de demonstração, bloqueia qualquer tentativa de alteração de senha
+            if (isDemoSalon(currentSalon)) {
+                document.getElementById('changePasswordOverlay').style.display = 'none';
+                return alert("⚠️ Este é o painel de demonstração pública. A senha deste salão é fixa (7777) e não pode ser alterada.");
+            }
+
             const p1 = document.getElementById('newFirstPass').value.trim();
             const p2 = document.getElementById('confirmFirstPass').value.trim();
 
@@ -1616,6 +1646,12 @@
         async function selectAndLoadSalon(slug) {
             currentSalon = await getSalonBySlug(slug);
             if (!currentSalon) currentSalon = await getSalonBySlug('gionails');
+
+            // Se for salão de demonstração, garante que o overlay de senha esteja oculto
+            if (isDemoSalon(currentSalon) || isDemoSalon(slug)) {
+                const overlay = document.getElementById('changePasswordOverlay');
+                if (overlay) overlay.style.display = 'none';
+            }
 
             // Atualizar UI com dados do salão
             document.getElementById('headerSalonBadge').innerText = currentSalon.name;

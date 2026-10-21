@@ -145,6 +145,13 @@ export async function initDb() {
     } catch (_) {
         // Ignorar erros de migração
     }
+
+    // Salões de Demonstração (Studio Bella Nails e Gio Nails): manter senha fixa 7777 sem bloqueio
+    try {
+        await executeQuery("UPDATE salons SET admin_password = '7777', must_change_password = 0 WHERE slug = 'bellanails' OR slug = 'bellanais' OR slug = 'gionails';");
+    } catch (_) {
+        // Ignorar erros
+    }
     isDbInitialized = true;
 }
 
